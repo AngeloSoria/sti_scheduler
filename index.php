@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/vendor/autoload.php';
+require_once __DIR__ . '/config/dbConnection.php';
 
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
 $dotenv->load();
@@ -15,14 +16,14 @@ $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
 $router = new Router();
 
-$router->add(MAIN_ROOT, function () {
-    require __DIR__ . '/src/auth/login.php';
+$router->add('/', function () {
+    require __DIR__ . '/src/views/login.php';
 });
-$router->add(MAIN_ROOT . 'about', function () {
-    require __DIR__ . '/src/about.php';
+$router->add('/about', function () {
+    require __DIR__ . '/src/views/about.php';
 });
 $router->add('/contact', function () {
-    require __DIR__ . '/src/contact.php';
+    require __DIR__ . '/src/views/contact.php';
 });
 
 $router->dispatch($path);
