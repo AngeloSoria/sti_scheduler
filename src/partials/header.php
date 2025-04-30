@@ -1,5 +1,5 @@
 <?php
-session_start();
+// session_start();
 $isLoggedIn = isset($_SESSION['username']);
 ?>
 
@@ -20,7 +20,9 @@ $isLoggedIn = isset($_SESSION['username']);
             <div class="flex items-center md:space-x-4">
                 <button onclick="document.getElementById('loginModal').classList.remove('hidden')"
                     class="hidden md:inline bg-yellow-400 text-black px-4 py-1 rounded hover:bg-yellow-300">Login</button>
-                <a href="/about" class="hidden md:inline hover:underline">About</a>
+                    <a href="/about" class="hidden md:inline hover:underline">About</a>
+                    <button onclick="document.getElementById('registerModal').classList.remove('hidden')"
+                        class="hidden md:inline bg-yellow-400 text-black px-4 py-1 rounded hover:bg-yellow-300">Register</button>
                 <!-- Hamburger for small screens -->
                 <button id="menu-btn" class="md:hidden focus:outline-none">
                     <svg class="w-6 h-6" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">

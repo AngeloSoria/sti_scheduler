@@ -1,11 +1,21 @@
 <?php
+class Database {
+    private $host = "localhost";
+    private $user = "root";
+    private $pass = "";
+    private $db = "scheduling_system_db";
+    private $conn;
 
-$host = "localhost";
-$user = "root";
-$pass = "";
-$db = "system-thesis";
+    public function __construct() {
+        try {
+            $this->conn = new PDO("mysql:host={$this->host};dbname={$this->db};charset=utf8mb4", $this->user, $this->pass);
+            $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        } catch (PDOException $e) {
+            die("Connection failed: " . $e->getMessage());
+        }
+    }
 
-$conn = new mysqli($host, $user, $pass, $db, $port);
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
+    public function getConnection() {
+        return $this->conn;
+    }
 }

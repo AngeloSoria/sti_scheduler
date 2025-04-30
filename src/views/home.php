@@ -63,6 +63,7 @@ session_start();
 
         <!-- Login Modal -->
         <?php include __DIR__ . '../../partials/modals/modal_login.php'; ?>
+        <?php include __DIR__ . '../../temp/modal_register.php'; ?>
 
     </div>
 

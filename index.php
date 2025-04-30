@@ -9,14 +9,17 @@ $dotenv->load();
 
 require_once __DIR__ . '/config/config.php';
 require_once __DIR__ . '/config/router.php';
-require_once __DIR__ . '/config/DbConnection.php';
+require __DIR__ . '/config/DbConnection.php';
+
+$conn = new Database();
+$conn = $conn->getConnection();
 
 $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
 $router = new Router();
 
 $router->add('/', function () {
-    require __DIR__ . '/src/views/login.php';
+    require __DIR__ . '/src/views/home.php';
 });
 $router->add('/about', function () {
     require __DIR__ . '/src/views/about.php';
