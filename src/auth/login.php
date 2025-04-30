@@ -1,4 +1,4 @@
 <?php
 
-echo "Login page<br>";
+echo "Login function<br>";
 echo "<a href='/'>Home</a><br>";
