@@ -7,63 +7,62 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="shortcut icon" href="/assets/img/sti_icon.jpg" type="image/x-icon">
+    <link rel="stylesheet" href="/assets/css/main_color.css">
     <title>STI Scheduler</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
 <body class="bg-gray-100 font-sans">
 
-    <?php include __DIR__ . '../../partials/header.php'; ?>
+    <div class="h-screen flex flex-col">
 
-    <!-- Hero -->
-    <section class="bg-white py-12 text-center">
-        <h1 class="text-4xl font-bold text-blue-700">Welcome to STI Scheduling System</h1>
-        <p class="mt-2 text-gray-600">Built with PHP, MySQL & TailwindCSS</p>
-    </section>
+        <div class="flex-grow">
+            <?php include __DIR__ . '../../partials/header.php'; ?>
 
-    <!-- Feature Cards -->
-    <section class="max-w-6xl mx-auto px-4 py-8 grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-        <div class="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition">
-            <svg class="w-12 h-12 text-blue-700 mb-3" fill="none" stroke="currentColor" stroke-width="2"
-                viewBox="0 0 24 24">
-                <path d="M9 12h6m-3 -3v6m9-6a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <h2 class="text-lg font-semibold">Curriculum</h2>
-            <p class="text-gray-600 text-sm">Manage academic programs & subjects.</p>
-        </div>
-        <div class="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition">
-            <svg class="w-12 h-12 text-yellow-400 mb-3" fill="none" stroke="currentColor" stroke-width="2"
-                viewBox="0 0 24 24">
-                <path d="M4 6h16M4 12h8m-8 6h16" />
-            </svg>
-            <h2 class="text-lg font-semibold">Room Assignment</h2>
-            <p class="text-gray-600 text-sm">Assign classes to appropriate rooms.</p>
-        </div>
-        <div class="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition">
-            <svg class="w-12 h-12 text-blue-400 mb-3" fill="none" stroke="currentColor" stroke-width="2"
-                viewBox="0 0 24 24">
-                <path d="M5 13l4 4L19 7" />
-            </svg>
-            <h2 class="text-lg font-semibold">Teacher Load</h2>
-            <p class="text-gray-600 text-sm">Track and manage faculty schedule.</p>
-        </div>
-    </section>
+            <!-- Hero -->
+            <section class="bg-white py-12 text-center">
+                <h1 class="text-4xl font-bold text-lapis-lazuli-3">Welcome to STI Scheduling System</h1>
+                <p class="mt-2 text-gray-600">Built with PHP, MySQL & TailwindCSS</p>
+            </section>
 
-    <?php include __DIR__ . '../../partials/footer.php'; ?>
+            <!-- Feature Cards -->
+            <section class="max-w-6xl mx-auto px-4 py-8 grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+                <div class="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 text-blue-700 mb-3" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                        stroke="currentColor" class="size-6">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
+                    </svg>
 
-    <!-- Login Modal -->
-    <div id="loginModal" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 hidden">
-        <div class="bg-white p-6 rounded-xl shadow-lg w-full max-w-md">
-            <h2 class="text-2xl font-bold mb-4 text-center">Admin Login</h2>
-            <form action="auth/login.php" method="POST" class="space-y-4">
-                <input type="text" name="username" class="w-full border p-2 rounded" placeholder="Username" required>
-                <input type="password" name="password" class="w-full border p-2 rounded" placeholder="Password"
-                    required>
-                <button type="submit" class="w-full bg-blue-700 text-white p-2 rounded hover:bg-blue-800">Login</button>
-                <button type="button" onclick="document.getElementById('loginModal').classList.add('hidden')"
-                    class="w-full mt-2 bg-gray-200 p-2 rounded">Cancel</button>
-            </form>
+
+                    <h2 class="text-lg font-semibold">Curriculum</h2>
+                    <p class="text-gray-600 text-sm">Manage academic programs & subjects.</p>
+                </div>
+                <div class="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 text-yellow-400 mb-3" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
+                    </svg>
+
+                    <h2 class="text-lg font-semibold">Room Assignment</h2>
+                    <p class="text-gray-600 text-sm">Assign classes to appropriate rooms.</p>
+                </div>
+                <div class="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition">
+                    <svg class="w-12 h-12 text-blue-400 mb-3" fill="none" stroke="currentColor" stroke-width="2"
+                        viewBox="0 0 24 24">
+                        <path d="M5 13l4 4L19 7" />
+                    </svg>
+                    <h2 class="text-lg font-semibold">Teacher Load</h2>
+                    <p class="text-gray-600 text-sm">Track and manage faculty schedule.</p>
+                </div>
+            </section>
         </div>
+
+        <?php include __DIR__ . '../../partials/footer.php'; ?>
+
+        <!-- Login Modal -->
+        <?php include __DIR__ . '../../partials/modals/modal_login.php'; ?>
+
     </div>
 
 </body>

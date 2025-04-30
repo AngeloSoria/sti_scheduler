@@ -3,14 +3,16 @@ session_start();
 $isLoggedIn = isset($_SESSION['username']);
 ?>
 
-<header class="bg-blue-700 text-white shadow">
-    <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+<header class="bg-lapis-lazuli text-white shadow-lg">
+    <div class="max-w-7xl mx-auto px-4 py-2 flex justify-between items-center">
 
         <!-- Left Logo -->
-        <div class="flex items-center space-x-2">
-            <img src="/sti-scheduler/assets/img/logo.png" alt="STI Logo" class="h-8">
-            <span class="text-lg font-semibold">STI Scheduler</span>
-        </div>
+        <a href="/">
+            <div class="flex items-center space-x-2">
+                <img src="/assets/img/STI_LOGO_for_eLMS.png" alt="STI Logo" width="80">
+                <span class="text-lg font-semibold">STI Scheduler</span>
+            </div>
+        </a>
 
         <!-- Right Content (Login/Dropdown) -->
         <?php if (!$isLoggedIn): ?>
@@ -28,7 +30,6 @@ $isLoggedIn = isset($_SESSION['username']);
             </div>
 
         <?php else: ?>
-            <!-- Authenticated Navbar -->
             <!-- Authenticated Navbar -->
             <div class="relative group">
                 <!-- Button -->

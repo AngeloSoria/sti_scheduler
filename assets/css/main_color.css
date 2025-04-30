@@ -1,0 +1,47 @@
+:root {
+    /* CSS HEX */
+--lapis-lazuli: #0058A6ff;
+--yellow: #F8F500ff;
+--lapis-lazuli-2: #1B669Aff;
+--aureolin: #FBF007ff;
+--lapis-lazuli-3: #0557A3ff;
+
+/* CSS HSL */
+--lapis-lazuli: hsla(208, 100%, 33%, 1);
+--yellow: hsla(59, 100%, 49%, 1);
+--lapis-lazuli-2: hsla(205, 70%, 35%, 1);
+--aureolin: hsla(57, 97%, 51%, 1);
+--lapis-lazuli-3: hsla(209, 94%, 33%, 1);
+}
+
+.bg-lapis-lazuli {
+    background-color: var(--lapis-lazuli) !important;
+}
+.bg-lapis-lazuli-2 {
+    background-color: var(--lapis-lazuli-2) !important;
+}
+.bg-lapis-lazuli-3 {
+    background-color: var(--lapis-lazuli-3) !important;
+}
+.bg-yellow {
+    background-color: var(--yellow) !important;
+}
+.bg-aureolin {
+    background-color: var(--aureolin) !important;
+}
+
+.text-lapis-lazuli {
+    color: var(--lapis-lazuli) !important;
+}
+.text-lapis-lazuli-2 {
+    color: var(--lapis-lazuli-2) !important;
+}
+.text-lapis-lazuli-3 {
+    color: var(--lapis-lazuli-3) !important;
+}
+.text-yellow {
+    color: var(--yellow) !important;
+}
+.text-aureolin {
+    color: var(--aureolin) !important;
+}
