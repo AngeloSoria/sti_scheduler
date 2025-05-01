@@ -28,5 +28,12 @@ $router->add('/contact', function () {
     require __DIR__ . '/src/views/contact.php';
 });
 
-$router->dispatch($path);
+// logged in
+$router->add('/dashboard', function () {
+    // Pass the page query parameter to dashboard.php
+    $page = $_GET['page'] ?? null;
+    require __DIR__ . '/src/views/dashboard.php';
+});
+// Removed the /dashboard/admin/curriculums route to avoid direct access
 
+$router->dispatch($path);

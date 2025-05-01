@@ -1,44 +1,59 @@
 <?php
 session_start();
 if (!isset($_SESSION['user'])) {
-    header("Location: /index.php");
+    header("Location: /");
     exit();
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Check if the form is submitted for registration
+    if (isset($_POST['context'])) {
+        switch ($_POST['context']) {
+            case 'logout':
+                // Handle logout
+                session_destroy();
+                header('Location: /');
+                exit();
+        }
+    }
 }
 ?>
 <!DOCTYPE html>
 <html lang="en">
 
-<head>
-    <meta charset="UTF-8">
-    <title>Dashboard</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
+<?php include_once __DIR__ . '../../partials/head.php'; ?>
 
 <body class="bg-gray-100">
 
     <!-- Header -->
-    <header class="flex justify-between items-center bg-blue-700 text-white p-4">
-        <div class="font-bold text-lg">STI Admin Dashboard</div>
-        <div class="space-x-4">
-            <span><?php echo $_SESSION['user']; ?></span>
-            <a href="/auth/logout.php"
-                class="bg-yellow-400 text-black px-3 py-1 rounded hover:bg-yellow-300">Logout</a>
-        </div>
-    </header>
+    <?php include_once __DIR__ . '../../partials/header.php'; ?>
 
     <!-- Sidebar + Main Content -->
     <div class="flex">
-        <aside class="w-64 bg-white p-4 shadow h-screen">
-            <nav class="space-y-2">
-                <a href="dashboard.php" class="block px-4 py-2 bg-blue-100 rounded">Dashboard</a>
-                <a href="curriculum.php" class="block px-4 py-2 hover:bg-blue-50 rounded">Curriculum</a>
-            </nav>
-        </aside>
+        <?php include_once __DIR__ . '../../partials/modals/rolebased_sidebar.php'; ?>
 
-        <main class="flex-1 p-6">
-            <h1 class="text-2xl font-semibold">Welcome, Admin!</h1>
-            <p class="text-gray-600 mt-2">Use the sidebar to navigate.</p>
+        <main id="main-content" class="flex-1 p-6">
+
+            <?php
+            $page = $_GET['page'] ?? null;
+            if ($page) {
+                // Sanitize the page parameter to prevent directory traversal
+                // $page = str_replace(['..', '/', '\\'], '', $page);
+                $partialPath = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'partials' . DIRECTORY_SEPARATOR . 'dashboard_pages' . DIRECTORY_SEPARATOR . $_SESSION['user']['role'] . DIRECTORY_SEPARATOR . "$page.php";
+                if (file_exists($partialPath)) {
+                    include $partialPath;
+                } else {
+                    echo '<p>Page not found.</p>';
+                }
+            } else {
+                // Default content if no page parameter
+                echo '<p>Welcome to the dashboard!</p>';
+            }
+            ?>
+
         </main>
+
+
     </div>
 </body>
 
