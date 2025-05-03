@@ -22,6 +22,9 @@ if ($isLoggedIn) {
             <div class="flex items-center space-x-2">
                 <img src="/assets/img/STI_LOGO_for_eLMS.png" alt="STI Logo" width="80">
                 <span class="text-lg font-semibold">STI Scheduler</span>
+                <?php if ($isLoggedIn): ?>
+                <p>| Dashboard</p>
+                <?php endif; ?>
             </div>
         </a>
 

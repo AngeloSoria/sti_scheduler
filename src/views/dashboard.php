@@ -55,6 +55,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 
     </div>
+
+    <!-- Footer -->
+    <?php include_once __DIR__ . '../../partials/footer.php'; ?>
 </body>
 
 </html>
