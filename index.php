@@ -34,6 +34,10 @@ $router->add('/dashboard', function () {
     $page = $_GET['page'] ?? null;
     require __DIR__ . '/src/views/dashboard.php';
 });
-// Removed the /dashboard/admin/curriculums route to avoid direct access
+$router->add('/profile', function () {
+    // Pass the page query parameter to dashboard.php
+    $userid = $_GET['id'] ?? null;
+    require __DIR__ . '/src/views/profile.php';
+});
 
 $router->dispatch($path);
