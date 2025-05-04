@@ -124,60 +124,68 @@
     const sidebarOpenedIcon = document.getElementById('sidebarOpenedIcon');
     const sidebarClosedIcon = document.getElementById('sidebarClosedIcon');
 
-    toggleBtn.addEventListener('click', () => {
-        sidebar.classList.toggle('w-16');
-        sidebar.classList.toggle('w-64');
-        sidebar.classList.toggle('sidebar-closed');
-        sidebarTexts.forEach(text => {
-
-            if (sidebar.classList.contains('w-16')) {
+    // Function to apply sidebar state
+    function applySidebarState(isClosed) {
+        if (isClosed) {
+            sidebar.classList.add('w-16', 'sidebar-closed');
+            sidebar.classList.remove('w-64');
+            sidebarTexts.forEach(text => {
                 text.style.opacity = '0';
                 text.style.transform = 'translateX(-10px)';
                 setTimeout(() => {
                     text.style.display = 'none';
                 }, 300);
-            } else {
+            });
+            sidebarLinks.forEach(link => {
+                link.classList.add('justify-center');
+                link.classList.remove('justify-start');
+                link.classList.remove('px-4');
+                link.classList.add('px-0');
+            });
+            sidebarOpenedIcon.classList.add('hidden');
+            sidebarClosedIcon.classList.remove('hidden');
+            if (usersAccordionBtn) {
+                usersAccordionBtn.classList.add('justify-center');
+                usersAccordionBtn.classList.remove('justify-between');
+                usersAccordionBtn.classList.remove('px-4');
+                usersAccordionBtn.classList.add('px-0'); // Hide the accordion arrow icon
+            }
+        } else {
+            sidebar.classList.remove('w-16', 'sidebar-closed');
+            sidebar.classList.add('w-64');
+            sidebarTexts.forEach(text => {
                 text.style.display = 'inline';
                 setTimeout(() => {
                     text.style.opacity = '1';
                     text.style.transform = 'translateX(0)';
                 }, 10);
-            }
-        });
-        sidebarLinks.forEach(link => {
-
-            if (sidebar.classList.contains('sidebar-closed')) {
-                link.classList.add('justify-center');
-                link.classList.remove('justify-start');
-                link.classList.remove('px-4');
-                link.classList.add('px-0');
-                sidebarOpenedIcon.classList.add('hidden');
-                sidebarClosedIcon.classList.remove('hidden');
-            } else {
+            });
+            sidebarLinks.forEach(link => {
                 link.classList.remove('justify-center');
                 link.classList.add('justify-start');
                 link.classList.add('px-4');
                 link.classList.remove('px-0');
-                sidebarClosedIcon.classList.add('hidden');
-                sidebarOpenedIcon.classList.remove('hidden');
-            }
-        });
-        // Special handling for users accordion button
-        if (usersAccordionBtn) {
-            if (sidebar.classList.contains('sidebar-closed')) {
-                usersAccordionBtn.classList.add('justify-center');
-                usersAccordionBtn.classList.remove('justify-between');
-                usersAccordionBtn.classList.remove('px-4');
-                usersAccordionBtn.classList.add('px-0'); // Hide the accordion arrow icon
-
-            } else {
+            });
+            sidebarClosedIcon.classList.add('hidden');
+            sidebarOpenedIcon.classList.remove('hidden');
+            if (usersAccordionBtn) {
                 usersAccordionBtn.classList.remove('justify-center');
                 usersAccordionBtn.classList.add('justify-between');
                 usersAccordionBtn.classList.add('px-4');
                 usersAccordionBtn.classList.remove('px-0'); // Show the accordion arrow icon
-
             }
         }
+    }
+
+    // Load sidebar state from localStorage
+    const sidebarClosed = localStorage.getItem('sidebarClosed') === 'true';
+    applySidebarState(sidebarClosed);
+
+    toggleBtn.addEventListener('click', () => {
+        const isClosed = sidebar.classList.contains('sidebar-closed');
+        applySidebarState(!isClosed);
+        // Save the new state to localStorage
+        localStorage.setItem('sidebarClosed', !isClosed);
     });
 })();
 </script>
@@ -193,5 +201,19 @@
 .sidebar-text {
     transition: opacity 0.3s ease, transform 0.3s ease;
     display: inline;
+}
+
+/* Make sidebar full width on mobile screens */
+@media (max-width: 640px) {
+    #sidebar:not(.sidebar-closed) {
+        width: 100vw !important;
+        max-width: 100vw !important;
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh !important;
+        z-index: 9999;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+    }
 }
 </style>

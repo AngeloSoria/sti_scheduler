@@ -6,11 +6,21 @@
     <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
         <h1 class="text-lg sm:text-xl font-semibold mb-4 md:mb-0">Curriculum View</h1>
         <div class="flex flex-col sm:flex-row sm:space-x-2 space-y-2 sm:space-y-0">
+            <button id="addNewBtn"
+                class="flex items-center justify-center px-3 sm:px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full sm:w-auto">
+                <svg class="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" fill="none" stroke="currentColor" stroke-width="2"
+                    viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 5v14M19 12H5"></path>
+                </svg>
+                Add New
+            </button>
             <button
                 class="flex items-center justify-center px-3 sm:px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-auto">
                 <svg class="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" fill="none" stroke="currentColor" stroke-width="2"
                     viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 5v14M19 12H5"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
+
                 </svg>
                 Import CSV
             </button>
@@ -110,4 +120,5 @@
                 class="px-3 py-1 border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 rounded-r-md w-full md:w-auto mb-2 md:mb-0">Next</button>
         </div>
     </div>
+    <?php include __DIR__ . '../../../modals/admin/add_new_curriculum_modal.php'; ?>
 </section>
