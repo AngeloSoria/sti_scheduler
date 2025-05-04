@@ -32,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="flex">
         <?php include_once __DIR__ . '../../partials/modals/rolebased_sidebar.php'; ?>
 
-        <main id="main-content" class="flex-1 p-6">
+        <main id="main-content" class="flex-1 p-6 overflow-x-auto">
 
             <?php
             $page = $_GET['page'] ?? null;

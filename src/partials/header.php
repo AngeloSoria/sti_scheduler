@@ -84,7 +84,79 @@ if ($isLoggedIn) {
     <nav id="mobile-menu" class="hidden md:hidden px-4 pb-4">
         <button onclick="document.getElementById('loginModal').classList.remove('hidden')"
             class="w-full bg-yellow-400 text-black px-4 py-2 rounded mt-2">Login</button>
-        <a href="#" class="block mt-2 hover:underline">About</a>
+        <a href="/about" class="block mt-2 hover:bg-blue-500 w-full px-4 py-2 rounded text-center">About</a>
     </nav>
     <?php endif; ?>
 </header>
+
+<style>
+#mobile-menu {
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: max-height 0.3s ease, opacity 0.3s ease;
+    display: none;
+}
+
+#mobile-menu.open {
+    opacity: 1;
+    display: block;
+}
+</style>
+
+<style>
+@media (max-width: 640px) {
+    header div.flex.items-center.space-x-2 img {
+        width: 50px !important;
+    }
+
+    header div.flex.items-center.space-x-2 span {
+        font-size: 0.75rem;
+        /* text-sm */
+    }
+
+    header div.flex.items-center.space-x-2 p {
+        font-size: 0.75rem;
+        /* text-sm */
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const menuBtn = document.getElementById('menu-btn');
+    const mobileMenu = document.getElementById('mobile-menu');
+
+    if (menuBtn && mobileMenu) {
+        menuBtn.addEventListener('click', function() {
+            if (mobileMenu.classList.contains('open')) {
+                // Close menu with transition
+                mobileMenu.style.maxHeight = mobileMenu.scrollHeight + "px";
+
+                // Force reflow to apply the height before collapsing
+                mobileMenu.offsetHeight;
+
+                mobileMenu.style.maxHeight = "0px";
+
+                // transition end event to remove class
+                mobileMenu.addEventListener('transitionend', function() {
+                    mobileMenu.classList.remove('open');
+                    mobileMenu.classList.add('hidden');
+                }, {
+                    once: true
+                });
+
+            } else {
+                // Open menu
+                mobileMenu.classList.remove('hidden');
+                mobileMenu.classList.add('open');
+                mobileMenu.style.maxHeight = mobileMenu.scrollHeight + "px";
+
+            }
+            // Optionally toggle aria-expanded for accessibility
+            const expanded = menuBtn.getAttribute('aria-expanded') === 'true';
+            menuBtn.setAttribute('aria-expanded', !expanded);
+        });
+    }
+});
+</script>

@@ -2,7 +2,7 @@
     class="w-64 bg-white p-4 shadow h-screen transition-width duration-300 ease-in-out overflow-hidden relative">
     <!-- Sidebar Toggle Button -->
     <section class="w-full flex items-center justify-end mb-6">
-        <button id="sidebarToggleBtn" aria-label="Toggle Sidebar"
+        <button id="sidebarToggleBtn" aria-label="Toggle Sidebar" title="Toggle Sidebar"
             class="p-1 rounded focus:outline-none focus:ring-2 focus:ring-blue-400 hover:bg-blue-50 bg-transparent">
             <svg id="sidebarClosedIcon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                 stroke-width="1.5" stroke="currentColor" class="size-4 text-gray-700 hidden">
@@ -123,6 +123,7 @@
     const usersAccordionBtn = document.getElementById('usersAccordionBtn');
     const sidebarOpenedIcon = document.getElementById('sidebarOpenedIcon');
     const sidebarClosedIcon = document.getElementById('sidebarClosedIcon');
+
     toggleBtn.addEventListener('click', () => {
         sidebar.classList.toggle('w-16');
         sidebar.classList.toggle('w-64');
@@ -150,31 +151,32 @@
                 link.classList.remove('justify-start');
                 link.classList.remove('px-4');
                 link.classList.add('px-0');
+                sidebarOpenedIcon.classList.add('hidden');
+                sidebarClosedIcon.classList.remove('hidden');
             } else {
                 link.classList.remove('justify-center');
                 link.classList.add('justify-start');
                 link.classList.add('px-4');
                 link.classList.remove('px-0');
+                sidebarClosedIcon.classList.add('hidden');
+                sidebarOpenedIcon.classList.remove('hidden');
             }
         });
         // Special handling for users accordion button
+        if (usersAccordionBtn) {
+            if (sidebar.classList.contains('sidebar-closed')) {
+                usersAccordionBtn.classList.add('justify-center');
+                usersAccordionBtn.classList.remove('justify-between');
+                usersAccordionBtn.classList.remove('px-4');
+                usersAccordionBtn.classList.add('px-0'); // Hide the accordion arrow icon
 
-        if (sidebar.classList.contains('sidebar-closed')) {
-            usersAccordionBtn.classList.add('justify-center');
-            usersAccordionBtn.classList.remove('justify-between');
-            usersAccordionBtn.classList.remove('px-4');
-            usersAccordionBtn.classList.add('px-0'); // Hide the accordion arrow icon
+            } else {
+                usersAccordionBtn.classList.remove('justify-center');
+                usersAccordionBtn.classList.add('justify-between');
+                usersAccordionBtn.classList.add('px-4');
+                usersAccordionBtn.classList.remove('px-0'); // Show the accordion arrow icon
 
-            sidebarOpenedIcon.classList.add('hidden');
-            sidebarClosedIcon.classList.remove('hidden');
-        } else {
-            usersAccordionBtn.classList.remove('justify-center');
-            usersAccordionBtn.classList.add('justify-between');
-            usersAccordionBtn.classList.add('px-4');
-            usersAccordionBtn.classList.remove('px-0'); // Show the accordion arrow icon
-
-            sidebarClosedIcon.classList.add('hidden');
-            sidebarOpenedIcon.classList.remove('hidden');
+            }
         }
     });
 })();
