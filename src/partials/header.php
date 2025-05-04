@@ -28,6 +28,7 @@ if ($isLoggedIn) {
             </div>
         </a>
 
+
         <!-- Right Content (Login/Dropdown) -->
         <?php if (!$isLoggedIn): ?>
         <!-- Public Navbar -->
@@ -85,11 +86,5 @@ if ($isLoggedIn) {
             class="w-full bg-yellow-400 text-black px-4 py-2 rounded mt-2">Login</button>
         <a href="#" class="block mt-2 hover:underline">About</a>
     </nav>
-
-    <script>
-    const btn = document.getElementById("menu-btn");
-    const menu = document.getElementById("mobile-menu");
-    btn?.addEventListener("click", () => menu.classList.toggle("hidden"));
-    </script>
     <?php endif; ?>
 </header>
