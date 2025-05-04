@@ -197,47 +197,210 @@ require_once __DIR__ . '/functions/func_curriculums.php';
         </div>
     </div>
     <?php include __DIR__ . '../../../modals/admin/add_new_curriculum_modal.php'; ?>
-</section>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const modal = document.getElementById('addNewCurriculumModal');
-        const addNewBtn = document.getElementById('addNewBtn');
-        const closeButtons = modal ? modal.querySelectorAll('[data-modal-hide]') : [];
+    <!-- Edit Curriculum Modal -->
+    <div id="editCurriculumModal" tabindex="-1" aria-hidden="true"
+        class="opacity-0 pointer-events-none overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full transition-opacity duration-300 ease-in-out">
+        <!-- Backdrop -->
+        <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity duration-300 ease-in-out"></div>
+        <div class="relative p-4 w-full max-w-md max-h-full z-10">
+            <div class="relative bg-white rounded-lg shadow">
+                <div class="flex items-center justify-between p-4 border-b rounded-t">
+                    <h3 class="text-xl font-semibold text-gray-900">
+                        Edit Curriculum
+                    </h3>
+                    <button type="button"
+                        class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center"
+                        data-modal-hide="editCurriculumModal">
+                        <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path fill-rule="evenodd"
+                                d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                                clip-rule="evenodd"></path>
+                        </svg>
+                        <span class="sr-only">Close modal</span>
+                    </button>
+                </div>
+                <div class="p-6 space-y-6">
+                    <form method="POST" action="dashboard?page=curriculums" id="editCurriculumForm">
+                        <input type="hidden" name="editCurriculumID" id="editCurriculumID" />
+                        <div class="mb-4">
+                            <label for="editSubjectName" class="block text-gray-700 text-sm font-bold mb-2">
+                                Subject Name:
+                                <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" name="editSubjectName" id="editSubjectName" required
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                placeholder="e.g., Introduction to Programming">
+                            <p class="text-gray-500 text-xs italic">Enter the full name of the subject.</p>
+                        </div>
+                        <div class="mb-4">
+                            <label for="editCreditUnit" class="block text-gray-700 text-sm font-bold mb-2">
+                                Credit Unit:
+                                <span class="text-red-500">*</span>
+                            </label>
+                            <input type="number" name="editCreditUnit" id="editCreditUnit" required min="1"
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                placeholder="e.g., 3">
+                            <p class="text-gray-500 text-xs italic">Specify the number of credit units for this subject.
+                            </p>
+                        </div>
+                        <div class="mb-4">
+                            <label for="editProgramName" class="block text-gray-700 text-sm font-bold mb-2">
+                                Program:
+                                <span class="text-red-500">*</span>
+                            </label>
+                            <select name="editProgramName" id="editProgramName" required
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                                <option value="" disabled selected>Select a Program</option>
+                                <?php foreach ($programs as $program): ?>
+                                    <option value="<?php echo htmlspecialchars($program); ?>">
+                                        <?php echo htmlspecialchars($program); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                            <p class="text-gray-500 text-xs italic">Choose the program this subject belongs to.</p>
+                        </div>
+                        <div class="mb-6">
+                            <label for="editYearLevel" class="block text-gray-700 text-sm font-bold mb-2">
+                                Year Level:
+                                <span class="text-red-500">*</span>
+                            </label>
+                            <select name="editYearLevel" id="editYearLevel" required
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                                <option value="" disabled selected>Select Year Level</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                            </select>
+                            <p class="text-gray-500 text-xs italic">Indicate the year level when this subject is
+                                offered.</p>
+                        </div>
+                        <div class="flex justify-end">
+                            <button type="button"
+                                class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-blue-300 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10"
+                                data-modal-hide="editCurriculumModal">
+                                Cancel
+                            </button>
+                            <button type="submit" name="btnEdit"
+                                class="bg-indigo-500 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline ml-3">
+                                Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 
-        function openModal() {
-            if (modal) {
-                modal.classList.remove('opacity-0', 'pointer-events-none');
-                modal.classList.add('opacity-100', 'pointer-events-auto');
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const addModal = document.getElementById('addNewCurriculumModal');
+            const addNewBtn = document.getElementById('addNewBtn');
+            const addCloseButtons = addModal ? addModal.querySelectorAll('[data-modal-hide]') : [];
+
+            const editModal = document.getElementById('editCurriculumModal');
+            const editCloseButtons = editModal ? editModal.querySelectorAll('[data-modal-hide]') : [];
+
+            function openModal(modal) {
+                if (modal) {
+                    modal.classList.remove('opacity-0', 'pointer-events-none');
+                    modal.classList.add('opacity-100', 'pointer-events-auto');
+                }
             }
-        }
 
-        function closeModal() {
-            if (modal) {
-                modal.classList.remove('opacity-100', 'pointer-events-auto');
-                modal.classList.add('opacity-0', 'pointer-events-none');
+            function closeModal(modal) {
+                if (modal) {
+                    modal.classList.remove('opacity-100', 'pointer-events-auto');
+                    modal.classList.add('opacity-0', 'pointer-events-none');
+                }
             }
-        }
 
-        if (addNewBtn) {
-            addNewBtn.addEventListener('click', function () {
-                openModal();
+            if (addNewBtn) {
+                addNewBtn.addEventListener('click', function () {
+                    openModal(addModal);
+                });
+            }
+
+            addCloseButtons.forEach(button => {
+                button.addEventListener('click', function () {
+                    closeModal(addModal);
+                });
             });
-        }
 
-        closeButtons.forEach(button => {
-            button.addEventListener('click', function () {
-                closeModal();
+            editCloseButtons.forEach(button => {
+                button.addEventListener('click', function () {
+                    closeModal(editModal);
+                });
+            });
+
+            // Optional: close modal when clicking outside the modal content
+            if (addModal) {
+                addModal.addEventListener('click', function (event) {
+                    if (event.target === addModal) {
+                        closeModal(addModal);
+                    }
+                });
+            }
+
+            if (editModal) {
+                editModal.addEventListener('click', function (event) {
+                    if (event.target === editModal) {
+                        closeModal(editModal);
+                    }
+                });
+            }
+
+            // Edit button click handler
+            document.querySelectorAll('.edit-btn').forEach(button => {
+                button.addEventListener('click', function () {
+                    const curriculumID = this.getAttribute('data-subject');
+                    // Fetch curriculum data from the row or via AJAX if needed
+                    const row = this.closest('tr');
+                    const subjectName = row.querySelector('td:nth-child(2)').textContent.trim();
+                    const creditUnit = row.querySelector('td:nth-child(3)').textContent.trim();
+                    const yearLevel = row.querySelector('td:nth-child(4)').textContent.trim();
+                    const programName = row.querySelector('td:nth-child(5)').textContent.trim();
+
+                    // Populate the edit modal fields
+                    document.getElementById('editCurriculumID').value = curriculumID;
+                    document.getElementById('editSubjectName').value = subjectName;
+                    document.getElementById('editCreditUnit').value = creditUnit;
+                    document.getElementById('editYearLevel').value = yearLevel;
+                    document.getElementById('editProgramName').value = programName;
+
+                    openModal(editModal);
+                });
+            });
+
+            // Delete button click handler
+            document.querySelectorAll('.delete-btn').forEach(button => {
+                button.addEventListener('click', function () {
+                    const curriculumID = this.getAttribute('data-subject');
+                    if (confirm('Are you sure you want to delete this curriculum?')) {
+                        // Send AJAX request to delete the curriculum
+                        fetch('/src/partials/dashboard_pages/admin/functions/func_curriculums.php', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                            },
+                            body: new URLSearchParams({
+                                'deleteCurriculumID': curriculumID
+                            })
+                        })
+                            .then(response => response.text())
+                            .then(data => {
+                                alert('Curriculum deleted successfully.');
+                                // Optionally, reload the page or remove the row from the table
+                                location.reload();
+                            })
+                            .catch(error => {
+                                alert('Error deleting curriculum.');
+                                console.error('Error:', error);
+                            });
+                    }
+                });
             });
         });
-
-        // Optional: close modal when clicking outside the modal content
-        if (modal) {
-            modal.addEventListener('click', function (event) {
-                if (event.target === modal) {
-                    closeModal();
-                }
-            });
-        }
-    });
-</script>
+    </script>

@@ -104,6 +104,56 @@ if (isset($_POST['btnAdd'])) {
     }
 }
 
+// Handle Edit Curriculum
+if (isset($_POST['btnEdit'])) {
+    $editCurriculumID = trim($_POST['editCurriculumID']);
+    $editSubjectName = trim($_POST['editSubjectName']);
+    $editCreditUnit = trim($_POST['editCreditUnit']);
+    $editProgramName = trim($_POST['editProgramName']);
+    $editYearLevel = trim($_POST['editYearLevel']);
+
+    // Lookup ProgramID
+    $stmt = $conn->prepare("SELECT ProgramID FROM programs WHERE ProgramName = ?");
+    $stmt->execute([$editProgramName]);
+    $program = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($program) {
+        $programID = $program['ProgramID'];
+        $stmtUpdate = $conn->prepare("UPDATE curriculums SET SubjectName = ?, CreditUnit = ?, ProgramID = ?, Year = ? WHERE CurriculumID = ?");
+        if ($stmtUpdate->execute([$editSubjectName, $editCreditUnit, $programID, $editYearLevel, $editCurriculumID])) {
+            echo '<div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
+                    <strong class="font-bold">Success!</strong>
+                    <span class="block sm:inline">Curriculum updated successfully!</span>
+                </div>';
+        } else {
+            echo '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+                    <strong class="font-bold">Error!</strong>
+                    <span class="block sm:inline">Failed to update curriculum. Please try again.</span>
+                </div>';
+        }
+    } else {
+        echo '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+                <strong class="font-bold">Error!</strong>
+                <span class="block sm:inline">Program "' . htmlspecialchars($editProgramName) . '" not found.</span>
+            </div>';
+    }
+}
+
+// Handle Delete Curriculum
+if (isset($_POST['deleteCurriculumID'])) {
+    $deleteCurriculumID = $_POST['deleteCurriculumID'];
+    error_log("Delete request received for CurriculumID: " . $deleteCurriculumID);
+    $stmtDelete = $conn->prepare("DELETE FROM curriculums WHERE CurriculumID = ?");
+    if ($stmtDelete->execute([$deleteCurriculumID])) {
+        error_log("Delete query executed successfully for CurriculumID: " . $deleteCurriculumID);
+        echo 'success';
+    } else {
+        error_log("Delete query failed for CurriculumID: " . $deleteCurriculumID);
+        echo 'error';
+    }
+    exit;
+}
+
 if (isset($_GET['ajax']) && $_GET['ajax'] == '1') {
     // AJAX request for filtered data, return HTML table rows only
     $programFilter = isset($_GET['program']) ? $_GET['program'] : '';
