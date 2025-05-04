@@ -43,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if (file_exists($partialPath)) {
                     include $partialPath;
                 } else {
-                    echo '<p>Page not found.</p>';
+                    include __DIR__ . '../../partials/dashboard_pages/404.php';
                 }
             } else {
                 // Default content if no page parameter
