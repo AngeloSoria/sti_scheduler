@@ -1,9 +1,4 @@
 <?php
-session_start();
-if (!isset($_SESSION['user'])) {
-    header("Location: /");
-    exit();
-}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Check if the form is submitted for registration
@@ -37,6 +32,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <?php
             $page = $_GET['page'] ?? null;
             if ($page) {
+                // Role validation: if page is curriculums and role is not admin, redirect to home
+                if ($page === 'curriculums' && $_SESSION['user']['role'] !== 'admin') {
+                    header("Location: /");
+                    exit();
+                }
                 // Sanitize the page parameter to prevent directory traversal
                 // $page = str_replace(['..', '/', '\\'], '', $page);
                 $partialPath = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'partials' . DIRECTORY_SEPARATOR . 'dashboard_pages' . DIRECTORY_SEPARATOR . $_SESSION['user']['role'] . DIRECTORY_SEPARATOR . "$page.php";

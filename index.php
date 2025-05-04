@@ -30,8 +30,36 @@ $router->add('/contact', function () {
 
 // logged in
 $router->add('/dashboard', function () {
-    // Pass the page query parameter to dashboard.php
+    session_start();
+    if (!isset($_SESSION['user'])) {
+        header("Location: /");
+        exit();
+    }
     $page = $_GET['page'] ?? null;
+
+    // Map of roles to pages they can access
+    $roleValidationMap = [
+        'admin' => [
+            'schedules',
+            'curriculums',
+            'programs',
+            'sections',
+            'rooms',
+            'users'
+        ],
+        'faculty' => [
+            'my_schedules'
+        ],
+    ];
+
+    if ($page) {
+        $userRole = $_SESSION['user']['role'];
+        if (!isset($roleValidationMap[$userRole]) || !in_array($page, $roleValidationMap[$userRole])) {
+            header("Location: /");
+            exit();
+        }
+    }
+
     require __DIR__ . '/src/views/dashboard.php';
 });
 $router->add('/profile', function () {
