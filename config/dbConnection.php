@@ -13,14 +13,14 @@ class Database
         $domainMode = strtolower($_ENV['DOMAIN_MODE'] ?? 'false') === 'true';
 
         if ($domainMode) {
-            $this->host = $_ENV['DB_HOST'] ?? 'localhost';
-            $this->port = $_ENV['DB_PORT'] ?? '';
-            $this->user = $_ENV['DB_USER'] ?? 'root';
-            $this->pass = $_ENV['DB_PASSWORD'] ?? '';
-            $this->db = $_ENV['DB_NAME'] ?? 'scheduling_system_db';
+            $this->host = $_ENV['DB_HOST'];
+            $this->port = $_ENV['DB_PORT'];
+            $this->user = $_ENV['DB_USER'];
+            $this->pass = $_ENV['DB_PASSWORD'];
+            $this->db = $_ENV['DB_NAME'];
         } else {
             $this->host = "localhost";
-            $this->port = "";
+            $this->port = "3306";
             $this->user = "root";
             $this->pass = "";
             $this->db = "scheduling_system_db";
