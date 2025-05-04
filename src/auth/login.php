@@ -29,7 +29,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 'id' => $user['UserID'],
                                 'username' => $user['Username'],
                                 'role' => $user['Role'],
-                                'profilepic' => "data:image/jpeg;base64," . base64_encode($user['ProfilePic']),
+                                'profilepic' => $user['ProfilePic']
+                                    ? "data:image/jpeg;base64," . base64_encode($user['ProfilePic'])
+                                    : "/assets/img/default-profile.png",
                             ];
                             header("Location: /dashboard");
                             exit();

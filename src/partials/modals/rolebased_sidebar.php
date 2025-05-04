@@ -19,7 +19,7 @@
     <nav id="sidebarContent" class="space-y-2">
 
         <?php if ($_SESSION['user']['role'] == 'faculty'): ?>
-        <a href="dashboard?page=my_schedule"
+        <a href="dashboard?view=my_schedule"
             class="sidebar-link block px-4 py-2 hover:bg-blue-50 rounded flex gap-3 items-center justify-start">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-gray-700 flex-shrink-0" fill="none"
                 viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
@@ -31,7 +31,7 @@
         <?php endif; ?>
 
         <?php if ($_SESSION['user']['role'] == 'admin'): ?>
-        <a href="dashboard?page=schedules"
+        <a href="dashboard?view=schedules"
             class="sidebar-link block px-4 py-2 hover:bg-blue-50 rounded flex gap-3 items-center justify-start">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-gray-700 flex-shrink-0" fill="none"
                 viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
@@ -40,7 +40,7 @@
             </svg>
             <span class="sidebar-text">Schedules</span>
         </a>
-        <a href="dashboard?page=curriculums"
+        <a href="dashboard?view=curriculums"
             class="sidebar-link block px-4 py-2 hover:bg-blue-50 rounded flex gap-3 items-center justify-start">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-gray-700 flex-shrink-0" fill="none"
                 viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
@@ -49,7 +49,7 @@
             </svg>
             <span class="sidebar-text">Curriculums</span>
         </a>
-        <a href="dashboard?page=programs"
+        <a href="dashboard?view=programs"
             class="sidebar-link block px-4 py-2 hover:bg-blue-50 rounded flex gap-3 items-center justify-start">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-gray-700 flex-shrink-0" fill="none"
                 viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
@@ -58,7 +58,7 @@
             </svg>
             <span class="sidebar-text">Programs</span>
         </a>
-        <a href="dashboard?page=sections"
+        <a href="dashboard?view=sections"
             class="sidebar-link block px-4 py-2 hover:bg-blue-50 rounded flex gap-3 items-center justify-start">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-gray-700 flex-shrink-0" fill="none"
                 viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
@@ -67,7 +67,7 @@
             </svg>
             <span class="sidebar-text">Sections</span>
         </a>
-        <a href="dashboard?page=rooms"
+        <a href="dashboard?view=rooms"
             class="sidebar-link block px-4 py-2 hover:bg-blue-50 rounded flex gap-3 items-center justify-start">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-gray-700 flex-shrink-0" fill="none"
                 viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
@@ -96,7 +96,7 @@
                 </svg>
             </button>
             <div id="usersSubmenu" class="hidden pl-6 mt-1 space-y-1">
-                <a href="dashboard?page=users&type=faculty"
+                <a href="dashboard?view=users&type=faculty"
                     class="sidebar-link block px-2 py-2 hover:bg-blue-50 rounded flex gap-3 items-center justify-start text-gray-700">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor" class="size-6">
@@ -107,7 +107,7 @@
                     </svg>
                     <span class="sidebar-text">Faculty</span>
                 </a>
-                <a href="dashboard?page=users&type=admin"
+                <a href="dashboard?view=users&type=admin"
                     class="sidebar-link block px-2 py-2 hover:bg-blue-50 rounded flex gap-3 items-center justify-start text-gray-700">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor" class="size-6">

@@ -9,7 +9,7 @@ $dotenv->load();
 
 require_once __DIR__ . '/config/config.php';
 require_once __DIR__ . '/config/router.php';
-require __DIR__ . '/config/DbConnection.php';
+require __DIR__ . '/config/dbConnection.php';
 
 $conn = new Database();
 $conn = $conn->getConnection();
@@ -35,7 +35,7 @@ $router->add('/dashboard', function () {
         header("Location: /");
         exit();
     }
-    $page = $_GET['page'] ?? null;
+    $view = $_GET['view'] ?? null;
 
     // Map of roles to pages they can access
     $roleValidationMap = [
@@ -52,9 +52,9 @@ $router->add('/dashboard', function () {
         ],
     ];
 
-    if ($page) {
+    if ($view) {
         $userRole = $_SESSION['user']['role'];
-        if (!isset($roleValidationMap[$userRole]) || !in_array($page, $roleValidationMap[$userRole])) {
+        if (!isset($roleValidationMap[$userRole]) || !in_array($view, $roleValidationMap[$userRole])) {
             header("Location: /");
             exit();
         }

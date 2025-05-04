@@ -1,9 +1,7 @@
 <?php
-
 $isLoggedIn = isset($_SESSION['user']);
 
 if ($isLoggedIn) {
-    // Logout process
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (isset($_POST['context']) && $_POST['context'] === 'logout') {
             session_destroy();
@@ -14,149 +12,138 @@ if ($isLoggedIn) {
 }
 ?>
 
-<header class="bg-lapis-lazuli text-white shadow-lg z-5">
-    <div class="max-w-7xl mx-auto px-4 py-2 flex justify-between items-center">
+<!-- Internal CSS for hover enhancement -->
+<style>
+.hover-fb:hover {
+    background-color: #f0f2f5;
+}
 
-        <!-- Left Logo -->
-        <a href="/">
-            <div class="flex items-center space-x-2">
-                <img src="/assets/img/STI_LOGO_for_eLMS.png" alt="STI Logo" width="80">
-                <span class="text-lg font-semibold">STI Scheduler</span>
-                <?php if ($isLoggedIn): ?>
-                <p>| Dashboard</p>
-                <?php endif; ?>
-            </div>
+/* Ensures the button text is vertically and horizontally centered */
+.button-style {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 0.5rem 1rem;
+    /* Adjust padding for consistency */
+    font-size: 0.875rem;
+    /* Same font size for all buttons */
+}
+
+.button-mobile-style {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 0.5rem 1rem;
+    /* Same padding as the desktop view */
+    font-size: 1rem;
+    /* Adjust font size for mobile to make it more readable */
+    width: 100%;
+    /* Full width for buttons to be consistent */
+    margin: 0.5rem 0;
+    /* Space between buttons */
+    border-radius: 0.375rem;
+    transition: background-color 0.2s ease;
+}
+
+.button-style,
+.button-mobile-style {
+    border-radius: 0.375rem;
+    transition: background-color 0.2s ease;
+}
+
+.button-style:hover,
+.button-mobile-style:hover {
+    background-color: #f0f2f5;
+    /* Same hover effect for consistency */
+}
+</style>
+
+<header class="bg-white text-gray-800 shadow-md z-10 border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+
+        <!-- Left: Logo and Title -->
+        <a href="<?php echo $isLoggedIn ? '/dashboard' : '/'; ?>" class="flex items-center space-x-2">
+            <img src="/assets/img/STI_LOGO_for_eLMS.png" alt="STI Logo" class="w-auto h-14">
+            <span class="text-xl font-bold text-blue-900">Schedulr</span>
         </a>
 
-
-        <!-- Right Content (Login/Dropdown) -->
+        <!-- Right: Navigation or Profile -->
         <?php if (!$isLoggedIn): ?>
-        <!-- Public Navbar -->
-        <div class="flex items-center md:space-x-4">
+        <!-- Desktop Nav -->
+        <div class="hidden md:flex items-center space-x-4">
+            <a href="/about" class="button-style bg-white hover:bg-gray-200 text-black transition">About</a>
             <button onclick="document.getElementById('loginModal').classList.remove('hidden')"
-                class="hidden md:inline bg-yellow-400 text-black px-4 py-1 rounded hover:bg-yellow-300">Login</button>
-            <a href="/about" class="hidden md:inline hover:underline">About</a>
+                class="button-style bg-yellow-400 hover:bg-yellow-300 text-black">
+                Login
+            </button>
             <?php if (isset($_ENV['DEVELOPMENT_MODE']) && $_ENV['DEVELOPMENT_MODE'] == 'true'): ?>
             <button onclick="document.getElementById('registerModal').classList.remove('hidden')"
-                class="hidden md:inline bg-yellow-400 text-black px-4 py-1 rounded hover:bg-yellow-300">Register</button>
+                class="button-style bg-yellow-400 hover:bg-yellow-300 text-black">
+                Register
+            </button>
             <?php endif; ?>
-            <!-- Hamburger for small screens -->
-            <button id="menu-btn" class="md:hidden focus:outline-none">
-                <svg class="w-6 h-6" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
-                    <path d="M4 6h16M4 12h16M4 18h16" />
+        </div>
+
+        <!-- Hamburger Icon -->
+        <div class="md:hidden">
+            <button id="menu-btn" class="focus:outline-none">
+                <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" stroke-width="2"
+                    viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
             </button>
         </div>
 
         <?php else: ?>
-        <!-- Authenticated Navbar -->
         <div class="relative group">
-            <!-- Button -->
             <button class="flex items-center space-x-2 focus:outline-none">
                 <img src="<?php echo $_SESSION['user']['profilepic']; ?>" alt="Profile"
-                    class="w-8 h-8 rounded-full border-2 border-white">
-                <span class="hidden sm:inline">
+                    class="w-9 h-9 rounded-full border-2 border-blue-500">
+                <span class="hidden sm:inline font-medium text-sm">
                     <?php echo htmlspecialchars($_SESSION['user']['username']); ?>
                     <?php echo '(' . htmlspecialchars($_SESSION['user']['role']) . ')'; ?>
                 </span>
-                <svg class="w-4 h-4" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
+                <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" stroke-width="2"
+                    viewBox="0 0 24 24">
                     <path d="M19 9l-7 7-7-7" />
                 </svg>
             </button>
-
-            <!-- Dropdown: must be inside the same parent (group) -->
+            <!-- Dropdown -->
             <div
-                class="absolute right-0 mt-2 bg-white text-black rounded shadow-md w-40 invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-all duration-200 z-50">
-                <a href="<?php echo "/profile?id=" . $_SESSION['user']['id'] ?>"
-                    class="block px-4 py-2 hover:bg-gray-100">View Profile</a>
+                class="absolute right-0 mt-2 bg-white text-black rounded-md shadow-lg w-44 invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-all duration-150 z-50">
+                <a href="/thesis-system/admin/profile.php" class="block px-4 py-2 text-sm hover-fb rounded-t">View
+                    Profile</a>
                 <form method="post">
                     <input type="hidden" name="context" value="logout">
-                    <button type="submit" class="w-full text-left px-4 py-2 hover:bg-gray-100">Logout</button>
+                    <button type="submit" class="w-full text-left px-4 py-2 text-sm hover-fb rounded-b">Logout</button>
                 </form>
             </div>
         </div>
-
         <?php endif; ?>
     </div>
 
-    <?php if (!$isLoggedIn): ?>
     <!-- Mobile Nav for Public -->
+    <?php if (!$isLoggedIn): ?>
     <nav id="mobile-menu" class="hidden md:hidden px-4 pb-4">
+        <a href="/about" class="button-mobile-style bg-white hover:bg-gray-200 text-black">About</a>
         <button onclick="document.getElementById('loginModal').classList.remove('hidden')"
-            class="w-full bg-yellow-400 text-black px-4 py-2 rounded mt-2">Login</button>
-        <a href="/about" class="block mt-2 hover:bg-blue-500 w-full px-4 py-2 rounded text-center">About</a>
+            class="button-mobile-style bg-yellow-400 text-black hover:bg-yellow-300">Login</button>
+        <?php if (isset($_ENV['DEVELOPMENT_MODE']) && $_ENV['DEVELOPMENT_MODE'] == 'true'): ?>
+        <button onclick="document.getElementById('registerModal').classList.remove('hidden')"
+            class="button-mobile-style bg-yellow-400 text-black hover:bg-yellow-300">Register</button>
+        <?php endif; ?>
     </nav>
+
+    <!-- Toggle Script -->
+    <script>
+    const btn = document.getElementById("menu-btn");
+    const menu = document.getElementById("mobile-menu");
+
+    btn?.addEventListener("click", () => {
+        menu.classList.toggle("hidden");
+    });
+    </script>
     <?php endif; ?>
 </header>
-
-<style>
-#mobile-menu {
-    max-height: 0;
-    overflow: hidden;
-    opacity: 0;
-    transition: max-height 0.3s ease, opacity 0.3s ease;
-    display: none;
-}
-
-#mobile-menu.open {
-    opacity: 1;
-    display: block;
-}
-</style>
-
-<style>
-@media (max-width: 640px) {
-    header div.flex.items-center.space-x-2 img {
-        width: 50px !important;
-    }
-
-    header div.flex.items-center.space-x-2 span {
-        font-size: 0.75rem;
-        /* text-sm */
-    }
-
-    header div.flex.items-center.space-x-2 p {
-        font-size: 0.75rem;
-        /* text-sm */
-    }
-}
-</style>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const menuBtn = document.getElementById('menu-btn');
-    const mobileMenu = document.getElementById('mobile-menu');
-
-    if (menuBtn && mobileMenu) {
-        menuBtn.addEventListener('click', function() {
-            if (mobileMenu.classList.contains('open')) {
-                // Close menu with transition
-                mobileMenu.style.maxHeight = mobileMenu.scrollHeight + "px";
-
-                // Force reflow to apply the height before collapsing
-                mobileMenu.offsetHeight;
-
-                mobileMenu.style.maxHeight = "0px";
-
-                // transition end event to remove class
-                mobileMenu.addEventListener('transitionend', function() {
-                    mobileMenu.classList.remove('open');
-                    mobileMenu.classList.add('hidden');
-                }, {
-                    once: true
-                });
-
-            } else {
-                // Open menu
-                mobileMenu.classList.remove('hidden');
-                mobileMenu.classList.add('open');
-                mobileMenu.style.maxHeight = mobileMenu.scrollHeight + "px";
-
-            }
-            // Optionally toggle aria-expanded for accessibility
-            const expanded = menuBtn.getAttribute('aria-expanded') === 'true';
-            menuBtn.setAttribute('aria-expanded', !expanded);
-        });
-    }
-});
-</script>

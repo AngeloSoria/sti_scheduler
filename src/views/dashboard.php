@@ -30,16 +30,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <main id="main-content" class="flex-1 p-6 overflow-x-auto">
 
             <?php
-            $page = $_GET['page'] ?? null;
-            if ($page) {
+            $view = $_GET['view'] ?? null;
+            if ($view) {
                 // Role validation: if page is curriculums and role is not admin, redirect to home
-                if ($page === 'curriculums' && $_SESSION['user']['role'] !== 'admin') {
+                if ($view === 'curriculums' && $_SESSION['user']['role'] !== 'admin') {
                     header("Location: /");
                     exit();
                 }
                 // Sanitize the page parameter to prevent directory traversal
-                // $page = str_replace(['..', '/', '\\'], '', $page);
-                $partialPath = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'partials' . DIRECTORY_SEPARATOR . 'dashboard_pages' . DIRECTORY_SEPARATOR . $_SESSION['user']['role'] . DIRECTORY_SEPARATOR . "$page.php";
+                // $view = str_replace(['..', '/', '\\'], '', $view);
+                $partialPath = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'partials' . DIRECTORY_SEPARATOR . 'dashboard_pages' . DIRECTORY_SEPARATOR . $_SESSION['user']['role'] . DIRECTORY_SEPARATOR . "$view.php";
                 if (file_exists($partialPath)) {
                     include $partialPath;
                 } else {
