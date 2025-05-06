@@ -279,8 +279,21 @@ require_once __DIR__ . '/functions/func_schedules.php';
 
                 const roomID = this.getAttribute('data-room-id');
                 const sectionID = this.getAttribute('data-section-id');
-                document.getElementById('editRoomID').value = roomID;
-                document.getElementById('editSectionID').value = sectionID;
+                const editRoomSelect = document.getElementById('editRoomID');
+                const editSectionSelect = document.getElementById('editSectionID');
+
+                // Set the select values only if the option exists
+                if (editRoomSelect.querySelector('option[value="' + roomID + '"]')) {
+                    editRoomSelect.value = roomID;
+                } else {
+                    editRoomSelect.value = '';
+                }
+
+                if (editSectionSelect.querySelector('option[value="' + sectionID + '"]')) {
+                    editSectionSelect.value = sectionID;
+                } else {
+                    editSectionSelect.value = '';
+                }
 
                 openModal(editModal);
             });
