@@ -10,7 +10,7 @@
                 </h3>
                 <button type="button"
                     class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center"
-                    data-modal-hide="addCurriculumModal">
+                    data-modal-hide="addNewCurriculumModal">
                     <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"
                         xmlns="http://www.w3.org/2000/svg">
                         <path fill-rule="evenodd"
@@ -21,7 +21,7 @@
                 </button>
             </div>
             <div class="p-6 space-y-6">
-                <form method="POST" action="dashboard?page=curriculums">
+                <form method="POST" action="" id="addNewCurriculumForm">
                     <div class="mb-4">
                         <label for="addSubjectName" class="block text-gray-700 text-sm font-bold mb-2">
                             Subject Name:
@@ -52,9 +52,9 @@
                             class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                             <option value="" disabled selected>Select a Program</option>
                             <?php foreach ($programs as $program): ?>
-                            <option value="<?php echo htmlspecialchars($program); ?>">
-                                <?php echo htmlspecialchars($program); ?>
-                            </option>
+                                <option value="<?php echo htmlspecialchars($program); ?>">
+                                    <?php echo htmlspecialchars($program); ?>
+                                </option>
                             <?php endforeach; ?>
                         </select>
                         <p class="text-gray-500 text-xs italic">Choose the program this subject belongs to.</p>
@@ -72,18 +72,18 @@
                             <option value="3">3</option>
                             <option value="4">4</option>
                         </select>
-                        <p class="text-gray-500 text-xs italic">Indicate the year level when this subject is
-                            offered.</p>
+                        <p class="text-gray-500 text-xs italic">Indicate the year level when this subject is offered.
+                        </p>
                     </div>
                     <div class="flex justify-end">
                         <button type="button"
                             class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-blue-300 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10"
-                            data-modal-hide="addCurriculumModal">
+                            data-modal-hide="addNewCurriculumModal">
                             Cancel
                         </button>
                         <button type="submit" name="btnAdd"
                             class="bg-indigo-500 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline ml-3">
-                            Add Subject
+                            Add Curriculum
                         </button>
                     </div>
                 </form>

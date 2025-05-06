@@ -1,9 +1,14 @@
 <?php
 
+if (!class_exists('Database')) {
+    require_once __DIR__ . '../../../../config/dbConnection.php';
+}
+
 require_once __DIR__ . '/functions/func_curriculums.php';
 
 ?>
 
+<div id="messageContainer"></div>
 <section class="p-4 sm:p-6 bg-white rounded shadow-md overflow-x-auto">
     <form id="importCSVForm" method="POST" enctype="multipart/form-data" class="mb-4">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
@@ -196,7 +201,7 @@ require_once __DIR__ . '/functions/func_curriculums.php';
             </form>
         </div>
     </div>
-    <?php include __DIR__ . '../../../modals/admin/add_new_curriculum_modal.php'; ?>
+<?php include __DIR__ . '/../../modals/admin/add_new_curriculum_modal.php'; ?>
 
     <!-- Edit Curriculum Modal -->
     <div id="editCurriculumModal" tabindex="-1" aria-hidden="true"
@@ -222,7 +227,7 @@ require_once __DIR__ . '/functions/func_curriculums.php';
                     </button>
                 </div>
                 <div class="p-6 space-y-6">
-                    <form method="POST" action="dashboard?page=curriculums" id="editCurriculumForm">
+                    <form method="POST" action="" id="editCurriculumForm">
                         <input type="hidden" name="editCurriculumID" id="editCurriculumID" />
                         <div class="mb-4">
                             <label for="editSubjectName" class="block text-gray-700 text-sm font-bold mb-2">
@@ -374,13 +379,15 @@ require_once __DIR__ . '/functions/func_curriculums.php';
                 });
             });
 
+            const messageContainer = document.getElementById('messageContainer');
+
             // Delete button click handler
             document.querySelectorAll('.delete-btn').forEach(button => {
                 button.addEventListener('click', function () {
                     const curriculumID = this.getAttribute('data-subject');
                     if (confirm('Are you sure you want to delete this curriculum?')) {
                         // Send AJAX request to delete the curriculum
-                        fetch('/src/partials/dashboard_pages/admin/functions/func_curriculums.php', {
+                        fetch('src/partials/dashboard_pages/admin/functions/func_curriculums.php', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -391,16 +398,36 @@ require_once __DIR__ . '/functions/func_curriculums.php';
                         })
                             .then(response => response.text())
                             .then(data => {
-                                alert('Curriculum deleted successfully.');
-                                // Optionally, reload the page or remove the row from the table
-                                location.reload();
+                                console.log('Delete response:', data);
+                                messageContainer.innerHTML = data;
+                                // Optionally, reload the page after a delay to show updated data
+                                setTimeout(() => {
+                                    location.reload();
+                                }, 1500);
                             })
                             .catch(error => {
-                                alert('Error deleting curriculum.');
+                                messageContainer.innerHTML = '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">Error deleting curriculum.</div>';
                                 console.error('Error:', error);
                             });
                     }
                 });
             });
+
+            // Auto-dismiss messages after 3 seconds
+            function autoDismissMessage() {
+                setTimeout(() => {
+                    if (messageContainer) {
+                        messageContainer.innerHTML = '';
+                    }
+                }, 3000);
+            }
+
+            // Call autoDismissMessage if alert message exists on page load
+            const alertMessage = document.querySelector('div[role="alert"]');
+            if (alertMessage) {
+                setTimeout(() => {
+                    alertMessage.remove();
+                }, 3000); // 3 seconds
+            }
         });
     </script>

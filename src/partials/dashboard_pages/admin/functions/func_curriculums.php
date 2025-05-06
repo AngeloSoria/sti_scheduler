@@ -1,5 +1,7 @@
 <?php
 
+require_once(__DIR__ . "../../../../../../config/dbConnection.php");
+
 $db = new Database();
 $conn = $db->getConnection();
 
@@ -79,25 +81,38 @@ if (isset($_POST['btnAdd'])) {
 
     if ($program) {
         $programID = $program['ProgramID'];
-        $stmtInsert = $conn->prepare("INSERT INTO curriculums (SubjectName, CreditUnit, ProgramID, Year) VALUES (?, ?, ?, ?)");
-        if ($stmtInsert->execute([$addSubjectName, $addCreditUnit, $programID, $addYearLevel])) {
-            $addSuccess = true;
-            echo '<div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
-                        <strong class="font-bold">Success!</strong>
-                        <span class="block sm:inline">Subject "' . htmlspecialchars($addSubjectName) . '" added successfully!</span>
+
+        // Check for duplicate curriculum with same subject, year, credit unit, and program
+        $stmtCheck = $conn->prepare("SELECT CurriculumID FROM curriculums WHERE SubjectName = ? AND Year = ? AND CreditUnit = ? AND ProgramID = ?");
+        $stmtCheck->execute([$addSubjectName, $addYearLevel, $addCreditUnit, $programID]);
+        if ($stmtCheck->fetch()) {
+            $addSuccess = false;
+            $addErrors[] = "Curriculum with the same subject, year, credit unit, and program already exists.";
+            echo '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert" id="message">
+                        <strong class="font-bold">Error!</strong>
+                        <span class="block sm:inline">Failed to add subject. Curriculum with the same subject, year, credit unit, and program already exists.</span>
                     </div>';
         } else {
-            $addSuccess = false;
-            $addErrors[] = "Error adding subject '" . htmlspecialchars($addSubjectName) . "'.";
-            echo '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-                        <strong class="font-bold">Error!</strong>
-                        <span class="block sm:inline">Failed to add subject. ' . (!empty($addErrors) ? implode('<br>', $addErrors) : 'Please try again.') . '</span>
-                    </div>';
+            $stmtInsert = $conn->prepare("INSERT INTO curriculums (SubjectName, CreditUnit, ProgramID, Year) VALUES (?, ?, ?, ?)");
+            if ($stmtInsert->execute([$addSubjectName, $addCreditUnit, $programID, $addYearLevel])) {
+                $addSuccess = true;
+                echo '<div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert" id="message">
+                            <strong class="font-bold">Success!</strong>
+                            <span class="block sm:inline">Subject "' . htmlspecialchars($addSubjectName) . '" added successfully!</span>
+                        </div>';
+            } else {
+                $addSuccess = false;
+                $addErrors[] = "Error adding subject '" . htmlspecialchars($addSubjectName) . "'.";
+                echo '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert" id="message">
+                            <strong class="font-bold">Error!</strong>
+                            <span class="block sm:inline">Failed to add subject. ' . (!empty($addErrors) ? implode('<br>', $addErrors) : 'Please try again.') . '</span>
+                        </div>';
+            }
         }
     } else {
         $addSuccess = false;
         $addErrors[] = "Program '" . htmlspecialchars($addProgramName) . "' not found.";
-        echo '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+        echo '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert" id="message">
                     <strong class="font-bold">Error!</strong>
                     <span class="block sm:inline">Failed to add subject. Program "' . htmlspecialchars($addProgramName) . '" not found.</span>
                 </div>';
@@ -119,37 +134,78 @@ if (isset($_POST['btnEdit'])) {
 
     if ($program) {
         $programID = $program['ProgramID'];
-        $stmtUpdate = $conn->prepare("UPDATE curriculums SET SubjectName = ?, CreditUnit = ?, ProgramID = ?, Year = ? WHERE CurriculumID = ?");
-        if ($stmtUpdate->execute([$editSubjectName, $editCreditUnit, $programID, $editYearLevel, $editCurriculumID])) {
-            echo '<div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
-                    <strong class="font-bold">Success!</strong>
-                    <span class="block sm:inline">Curriculum updated successfully!</span>
+
+        // Check for duplicate curriculum with same subject, year, credit unit, and program excluding current record
+        $stmtCheck = $conn->prepare("SELECT CurriculumID FROM curriculums WHERE SubjectName = ? AND Year = ? AND CreditUnit = ? AND ProgramID = ? AND CurriculumID != ?");
+        $stmtCheck->execute([$editSubjectName, $editYearLevel, $editCreditUnit, $programID, $editCurriculumID]);
+        if ($stmtCheck->fetch()) {
+            echo '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert" id="message">
+                    <strong class="font-bold">Error!</strong>
+                    <span class="block sm:inline">Curriculum with the same subject, year, credit unit, and program already exists.</span>
                 </div>';
         } else {
-            echo '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-                    <strong class="font-bold">Error!</strong>
-                    <span class="block sm:inline">Failed to update curriculum. Please try again.</span>
-                </div>';
+            $stmtUpdate = $conn->prepare("UPDATE curriculums SET SubjectName = ?, CreditUnit = ?, ProgramID = ?, Year = ? WHERE CurriculumID = ?");
+            if ($stmtUpdate->execute([$editSubjectName, $editCreditUnit, $programID, $editYearLevel, $editCurriculumID])) {
+                echo '<div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert" id="message">
+                        <strong class="font-bold">Success!</strong>
+                        <span class="block sm:inline">Curriculum updated successfully!</span>
+                    </div>';
+            } else {
+                echo '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert" id="message">
+                        <strong class="font-bold">Error!</strong>
+                        <span class="block sm:inline">Failed to update curriculum. Please try again.</span>
+                    </div>';
+            }
         }
     } else {
-        echo '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+        echo '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert" id="message">
                 <strong class="font-bold">Error!</strong>
                 <span class="block sm:inline">Program "' . htmlspecialchars($editProgramName) . '" not found.</span>
             </div>';
     }
 }
 
-// Handle Delete Curriculum
 if (isset($_POST['deleteCurriculumID'])) {
     $deleteCurriculumID = $_POST['deleteCurriculumID'];
     error_log("Delete request received for CurriculumID: " . $deleteCurriculumID);
-    $stmtDelete = $conn->prepare("DELETE FROM curriculums WHERE CurriculumID = ?");
-    if ($stmtDelete->execute([$deleteCurriculumID])) {
-        error_log("Delete query executed successfully for CurriculumID: " . $deleteCurriculumID);
-        echo 'success';
-    } else {
-        error_log("Delete query failed for CurriculumID: " . $deleteCurriculumID);
-        echo 'error';
+
+    // Check for related records in schedules
+    $stmtCheckSchedules = $conn->prepare("SELECT COUNT(*) FROM schedules WHERE CurriculumID = ?");
+    $stmtCheckSchedules->execute([$deleteCurriculumID]);
+    $countSchedules = $stmtCheckSchedules->fetchColumn();
+
+    // Check for related records in preferredsubjects
+    $stmtCheckPreferred = $conn->prepare("SELECT COUNT(*) FROM preferredsubjects WHERE CurriculumID = ?");
+    $stmtCheckPreferred->execute([$deleteCurriculumID]);
+    $countPreferred = $stmtCheckPreferred->fetchColumn();
+
+    try {
+        // Delete related records in schedules
+        $stmtDeleteSchedules = $conn->prepare("DELETE FROM schedules WHERE CurriculumID = ?");
+        $stmtDeleteSchedules->execute([$deleteCurriculumID]);
+
+        // Delete related records in preferredsubjects
+        $stmtDeletePreferred = $conn->prepare("DELETE FROM preferredsubjects WHERE CurriculumID = ?");
+        $stmtDeletePreferred->execute([$deleteCurriculumID]);
+
+        // Delete curriculum
+        $stmtDelete = $conn->prepare("DELETE FROM curriculums WHERE CurriculumID = ?");
+        if ($stmtDelete->execute([$deleteCurriculumID])) {
+            error_log("Delete query executed successfully for CurriculumID: " . $deleteCurriculumID);
+            echo '<div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
+            <strong class="font-bold">Success!</strong>
+            <span class="block sm:inline">Curriculum deleted successfully!</span>
+          </div>';
+        } else {
+            error_log("Delete query failed for CurriculumID: " . $deleteCurriculumID);
+            echo '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+            <strong class="font-bold">Error!</strong>
+            <span class="block sm:inline">Failed to delete curriculum. Please try again.</span>
+          </div>';
+        }
+    } catch (PDOException $e) {
+        error_log("Delete query exception for CurriculumID: " . $deleteCurriculumID . " - " . $e->getMessage());
+        echo 'error: Exception occurred during deletion.';
     }
     exit;
 }
@@ -383,8 +439,29 @@ if (!empty($yearFilter)) {
 }
 
 if (!empty($search)) {
-    $whereClauses[] = "c.SubjectName LIKE ?";
-    $queryParams[] = '%' . $search . '%';
+    $searchKeywords = preg_split('/\s+/', $search, -1, PREG_SPLIT_NO_EMPTY);
+    if (!empty($searchKeywords)) {
+        $keywordClauses = [];
+        foreach ($searchKeywords as $keyword) {
+            $keywordClause = [];
+            $keyword = strtolower($keyword); // pre-lowercase to reduce repeated calls
+            $keywordClause[] = "LOWER(c.SubjectName) LIKE LOWER(?)";
+            $keywordClause[] = "LOWER(c.CreditUnit) LIKE LOWER(?)";
+            $keywordClause[] = "LOWER(c.Year) LIKE LOWER(?)";
+            $keywordClause[] = "LOWER(p.ProgramName) LIKE LOWER(?)";
+            // Group OR conditions for this keyword
+            $keywordClauses[] = '(' . implode(' OR ', $keywordClause) . ')';
+
+            // Add parameters (with wildcards)
+            $likeKeyword = '%' . $keyword . '%';
+            $queryParams[] = $likeKeyword;
+            $queryParams[] = $likeKeyword;
+            $queryParams[] = $likeKeyword;
+            $queryParams[] = $likeKeyword;
+        }
+        // Combine all keyword groups with AND (all keywords must match somewhere)
+        $whereClauses[] = '(' . implode(' AND ', $keywordClauses) . ')';
+    }
 }
 
 $whereString = !empty($whereClauses) ? "WHERE " . implode(" AND ", $whereClauses) : "";

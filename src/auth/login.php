@@ -5,6 +5,7 @@ declare(strict_types=1);
 $db = new Database();
 $conn = $db->getConnection();
 
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Check if the form is submitted for registration
     if (isset($_POST['context'])) {
@@ -18,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $errorMessage = 'Please fill in all required fields.';
                 } else {
                     try {
-                        $sql = "SELECT * FROM Users WHERE Username = :username";
+                        $sql = "SELECT * FROM users WHERE Username = :username";
                         $stmt = $conn->prepare($sql);
                         $stmt->bindParam(':username', $username);
                         $stmt->execute();
@@ -75,7 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     if (empty($errorMessage)) {
                         try {
-                            $sql = "INSERT INTO Users (Username, Password, FirstName, MiddleName, LastName, Role, ProfilePic) VALUES (:username, :password, :firstName, :middleName, :lastName, :role, :profilePic)";
+                            $sql = "INSERT INTO users (Username, Password, FirstName, MiddleName, LastName, Role, ProfilePic) VALUES (:username, :password, :firstName, :middleName, :lastName, :role, :profilePic)";
                             $stmt = $conn->prepare($sql);
                             $stmt->bindParam(':username', $username);
                             $stmt->bindParam(':password', $hashedPassword);

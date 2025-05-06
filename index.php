@@ -12,7 +12,8 @@ require_once __DIR__ . '/config/router.php';
 require __DIR__ . '/config/dbConnection.php';
 
 $conn = new Database();
-$conn = $conn->getConnection();
+
+// $conn = $conn->getConnection();
 
 $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
@@ -24,13 +25,14 @@ $router->add('/', function () {
 $router->add('/about', function () {
     require __DIR__ . '/src/views/about.php';
 });
-$router->add('/contact', function () {
-    require __DIR__ . '/src/views/contact.php';
-});
 
 // logged in
 $router->add('/dashboard', function () {
     session_start();
+
+    $conn = new Database();
+    $conn = $conn->getConnection();
+
     if (!isset($_SESSION['user'])) {
         header("Location: /");
         exit();
@@ -44,6 +46,7 @@ $router->add('/dashboard', function () {
             'curriculums',
             'programs',
             'sections',
+            'departments',
             'rooms',
             'users'
         ],
