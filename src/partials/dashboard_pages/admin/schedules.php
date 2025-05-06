@@ -118,7 +118,9 @@ require_once __DIR__ . '/functions/func_schedules.php';
                             </td>
                             <td class="px-4 py-2 whitespace-nowrap text-center space-x-2">
                                 <button class="text-blue-600 hover:text-blue-900 edit-btn" title="Edit"
-                                    data-schedule="<?php echo htmlspecialchars($data[$i]['ScheduleID']); ?>" aria-label="Edit">
+                                    data-schedule="<?php echo htmlspecialchars($data[$i]['ScheduleID']); ?>"
+                                    data-room-id="<?php echo htmlspecialchars($data[$i]['RoomID']); ?>"
+                                    data-section-id="<?php echo htmlspecialchars($data[$i]['SectionID']); ?>" aria-label="Edit">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
                                         title="Edit" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                                         stroke-linejoin="round">
@@ -274,8 +276,11 @@ require_once __DIR__ . '/functions/func_schedules.php';
                 document.getElementById('editDay').value = day;
                 document.getElementById('editStartTime').value = startTime;
                 document.getElementById('editEndTime').value = endTime;
-                document.getElementById('editRoomName').value = roomName;
-                document.getElementById('editSectionName').value = sectionName;
+
+                const roomID = this.getAttribute('data-room-id');
+                const sectionID = this.getAttribute('data-section-id');
+                document.getElementById('editRoomID').value = roomID;
+                document.getElementById('editSectionID').value = sectionID;
 
                 openModal(editModal);
             });

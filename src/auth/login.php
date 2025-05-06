@@ -14,6 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $username = isset($_POST['username']) ? trim($_POST['username']) : '';
                 $password = isset($_POST['password']) ? $_POST['password'] : '';
 
+
                 // Basic validation
                 if (empty($username) || empty($password)) {
                     $errorMessage = 'Please fill in all required fields.';
@@ -26,6 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
                         if ($user && password_verify($password, $user['Password'])) {
+                            echo 'FOO';
                             $_SESSION['user'] = [
                                 'id' => $user['UserID'],
                                 'username' => $user['Username'],

@@ -78,11 +78,11 @@ if ($isLoggedIn) {
                     class="button-style bg-yellow-400 hover:bg-yellow-300 text-black">
                     Login
                 </button>
-                <!-- <?php if (isset($_ENV['DEVELOPMENT_MODE']) && $_ENV['DEVELOPMENT_MODE'] == 'true'): ?>
-                    <button onclick="openRegisterModal()" class="button-style bg-yellow-400 hover:bg-yellow-300 text-black">
+                <?php if (isset($_ENV['DEVELOPMENT_MODE']) && $_ENV['DEVELOPMENT_MODE'] == 'true'): ?>
+                    <button onclick="document.getElementById('registerModal').classList.remove('hidden')" class="button-style bg-yellow-400 hover:bg-yellow-300 text-black">
                         Register
                     </button>
-                <?php endif; ?> -->
+                <?php endif; ?>
             </div>
 
             <!-- Hamburger Icon -->
@@ -122,6 +122,10 @@ if ($isLoggedIn) {
             </div>
         <?php endif; ?>
     </div>
+
+    <?php if (isset($_ENV['DEVELOPMENT_MODE']) && $_ENV['DEVELOPMENT_MODE'] == 'true'): ?>
+        <?php include_once __DIR__ . '/modals/modal_register.php'; ?>
+    <?php endif; ?>
 
     <!-- Mobile Nav for Public -->
     <?php if (!$isLoggedIn): ?>

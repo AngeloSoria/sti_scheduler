@@ -1,18 +1,20 @@
 <?php
 
-require_once(__DIR__ . "../../../../../../config/dbConnection.php");
+require_once __DIR__ . '/../../../../../config/dbConnection.php';
+
 
 $db = new Database();
 $conn = $db->getConnection();
 
 function getPreferredSubjectsByFaculty($facultyId)
 {
+    global $conn;
     try {
         $db = new Database();
-        $dbConn = $db->getConnection();
-        $stmt = $dbConn->prepare("SELECT c.CurriculumID, c.SubjectName FROM preferredsubjects p JOIN curriculums c ON p.CurriculumID = c.CurriculumID WHERE p.FacultyID = ? ORDER BY c.SubjectName ASC");
+        $conn = $db->getConnection();
+        $stmt = $conn->prepare("SELECT c.CurriculumID, c.SubjectName FROM preferredsubjects p JOIN curriculums c ON p.CurriculumID = c.CurriculumID WHERE p.FacultyID = ? ORDER BY c.SubjectName ASC");
         $stmt->execute([$facultyId]);
-        return $stmt->fetchAll($dbConn::FETCH_ASSOC);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
         return [];
     }
@@ -20,6 +22,7 @@ function getPreferredSubjectsByFaculty($facultyId)
 
 function getRooms()
 {
+    global $conn;
     try {
         $db = new Database();
         $dbConn = $db->getConnection();
@@ -29,116 +32,6 @@ function getRooms()
     } catch (PDOException $e) {
         return [];
     }
-}
-
-$addSuccess = null;
-$addErrors = [];
-$editSuccess = null;
-$editErrors = [];
-
-// Handle Add Schedule
-if (isset($_POST['btnAdd'])) {
-    $facultyID = trim($_POST['addFacultyID']);
-    $curriculumID = trim($_POST['addCurriculumID']);
-    $days = isset($_POST['addDays']) ? $_POST['addDays'] : [];
-    $startTime = trim($_POST['addStartTime']);
-    $endTime = trim($_POST['addEndTime']);
-    $roomID = trim($_POST['addRoomID']);
-    $sectionID = trim($_POST['addSectionID']);
-
-    if (empty($facultyID) || empty($curriculumID) || empty($days) || empty($startTime) || empty($endTime) || empty($roomID) || empty($sectionID)) {
-        $addSuccess = false;
-        $addErrors[] = "All fields are required.";
-    } else {
-        $addSuccess = true;
-        try {
-            $conn->beginTransaction();
-            $stmtInsert = $conn->prepare("INSERT INTO schedules (CurriculumID, FacultyID, Day, StartTime, EndTime, RoomID, SectionID) VALUES (?, ?, ?, ?, ?, ?, ?)");
-            foreach ($days as $day) {
-                $stmtInsert->execute([$curriculumID, $facultyID, $day, $startTime, $endTime, $roomID, $sectionID]);
-            }
-            $conn->commit();
-            echo '<div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
-                    <strong class="font-bold">Success!</strong>
-                    <span class="block sm:inline">Schedule(s) added successfully!</span>
-                </div>';
-        } catch (PDOException $e) {
-            $conn->rollBack();
-            $addSuccess = false;
-            $addErrors[] = "Error adding schedule(s): " . $e->getMessage();
-            echo '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-                    <strong class="font-bold">Error!</strong>
-                    <span class="block sm:inline">Failed to add schedule(s). ' . htmlspecialchars($e->getMessage()) . '</span>
-                </div>';
-        }
-    }
-}
-
-// Handle Edit Schedule
-if (isset($_POST['btnEdit'])) {
-    $scheduleID = trim($_POST['editScheduleID']);
-    $facultyID = trim($_POST['editFacultyID']);
-    $curriculumID = trim($_POST['editCurriculumID']);
-    $day = trim($_POST['editDay']);
-    $startTime = trim($_POST['editStartTime']);
-    $endTime = trim($_POST['editEndTime']);
-    $roomID = trim($_POST['editRoomID']);
-    $sectionID = trim($_POST['editSectionID']);
-
-    if (empty($scheduleID) || empty($facultyID) || empty($curriculumID) || empty($day) || empty($startTime) || empty($endTime) || empty($roomID) || empty($sectionID)) {
-        $editSuccess = false;
-        $editErrors[] = "All fields are required.";
-    } else {
-        try {
-            $stmtUpdate = $conn->prepare("UPDATE schedules SET CurriculumID = ?, FacultyID = ?, Day = ?, StartTime = ?, EndTime = ?, RoomID = ?, SectionName = ? WHERE ScheduleID = ?");
-            if ($stmtUpdate->execute([$curriculumID, $facultyID, $day, $startTime, $endTime, $roomID, $sectionID, $scheduleID])) {
-                $editSuccess = true;
-                echo '<div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
-                        <strong class="font-bold">Success!</strong>
-                        <span class="block sm:inline">Schedule updated successfully!</span>
-                    </div>';
-            } else {
-                $editSuccess = false;
-                $editErrors[] = "Failed to update schedule.";
-                echo '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-                        <strong class="font-bold">Error!</strong>
-                        <span class="block sm:inline">Failed to update schedule. Please try again.</span>
-                    </div>';
-            }
-        } catch (PDOException $e) {
-            $editSuccess = false;
-            $editErrors[] = "Error updating schedule: " . $e->getMessage();
-            echo '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-                    <strong class="font-bold">Error!</strong>
-                    <span class="block sm:inline">Failed to update schedule. ' . htmlspecialchars($e->getMessage()) . '</span>
-                </div>';
-        }
-    }
-}
-
-// Handle Delete Schedule
-if (isset($_POST['deleteScheduleID'])) {
-    $deleteScheduleID = $_POST['deleteScheduleID'];
-    try {
-        $stmtDelete = $conn->prepare("DELETE FROM schedules WHERE ScheduleID = ?");
-        if ($stmtDelete->execute([$deleteScheduleID])) {
-            echo '<div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
-                    <strong class="font-bold">Success!</strong>
-                    <span class="block sm:inline">Schedule deleted successfully!</span>
-                </div>';
-        } else {
-            echo '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-                    <strong class="font-bold">Error!</strong>
-                    <span class="block sm:inline">Failed to delete schedule. Please try again.</span>
-                </div>';
-        }
-    } catch (PDOException $e) {
-        echo '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-                <strong class="font-bold">Error!</strong>
-                <span class="block sm:inline">Failed to delete schedule. ' . htmlspecialchars($e->getMessage()) . '</span>
-            </div>';
-    }
-    exit;
 }
 
 // AJAX request for filtered data with pagination and search
@@ -166,7 +59,7 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == '1') {
     }
 
     if (!empty($sectionFilter)) {
-        $whereClauses[] = "s.SectionName = ?";
+        $whereClauses[] = "s.SectionID = ?";
         $queryParams[] = $sectionFilter;
     }
 
@@ -199,7 +92,7 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == '1') {
             JOIN facultymembers fm ON s.FacultyID = fm.FacultyID
             JOIN users u ON fm.UserID = u.UserID
             JOIN rooms r ON s.RoomID = r.RoomID
-            JOIN sections sec ON s.SectionID= sec.SectionID
+            JOIN sections sec ON s.SectionID = sec.SectionID
             $whereString
             ORDER BY s.ScheduleID ASC
             LIMIT ?, ?";
@@ -213,11 +106,11 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == '1') {
                 $stmt->bindValue($paramIndex++, $param);
             }
         }
-        $stmt->bindValue($paramIndex++, $offset, $conn::PARAM_INT);
-        $stmt->bindValue($paramIndex++, $rowsPerPage, $conn::PARAM_INT);
+        $stmt->bindValue($paramIndex++, $offset, PDO::PARAM_INT);
+        $stmt->bindValue($paramIndex++, $rowsPerPage, PDO::PARAM_INT);
 
         $stmt->execute();
-        $data = $stmt->fetchAll($conn::FETCH_ASSOC);
+        $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         if (empty($data)) {
             echo json_encode(['html' => '<tr><td colspan="9" class="text-center">No schedules found.</td></tr>']);
@@ -285,7 +178,7 @@ if (!empty($dayFilter)) {
 }
 
 if (!empty($sectionFilter)) {
-    $whereClauses[] = "s.SectionName = ?";
+    $whereClauses[] = "s.SectionID = ?";
     $queryParams[] = $sectionFilter;
 }
 
@@ -318,12 +211,12 @@ $sql = "SELECT COUNT(*) AS total
         JOIN facultymembers fm ON s.FacultyID = fm.FacultyID
         JOIN users u ON fm.UserID = u.UserID
         JOIN rooms r ON s.RoomID = r.RoomID
-        JOIN sections sec ON s.SectionID= sec.SectionID
+        JOIN sections sec ON s.SectionID = sec.SectionID
         $whereString";
 
 $stmtCount = $conn->prepare($sql);
 $stmtCount->execute($queryParams);
-$row = $stmtCount->fetch($conn::FETCH_ASSOC);
+$row = $stmtCount->fetch(PDO::FETCH_ASSOC);
 $totalRows = $row['total'];
 $totalPages = ceil($totalRows / $rowsPerPage);
 
@@ -334,7 +227,7 @@ if ($totalRows > 0) {
                 JOIN facultymembers fm ON s.FacultyID = fm.FacultyID
                 JOIN users u ON fm.UserID = u.UserID
                 JOIN rooms r ON s.RoomID = r.RoomID
-                JOIN sections sec ON s.SectionID= sec.SectionID
+                JOIN sections sec ON s.SectionID = sec.SectionID
                 $whereString
                 ORDER BY s.ScheduleID ASC
                 LIMIT ?, ?";
@@ -346,25 +239,124 @@ if ($totalRows > 0) {
             $stmtData->bindValue($paramIndex++, $param);
         }
     }
-    $stmtData->bindValue($paramIndex++, $offset, $conn::PARAM_INT);
-    $stmtData->bindValue($paramIndex++, $rowsPerPage, $conn::PARAM_INT);
+    $stmtData->bindValue($paramIndex++, $offset, PDO::PARAM_INT);
+    $stmtData->bindValue($paramIndex++, $rowsPerPage, PDO::PARAM_INT);
     $stmtData->execute();
-    $data = $stmtData->fetchAll($conn::FETCH_ASSOC);
+    $data = $stmtData->fetchAll(PDO::FETCH_ASSOC);
 } else {
     $data = [];
 }
 
-// Fetch faculties for filter and modal dro$connwn
+// Fetch faculties for filter and modal dropdown
 $stmtFaculties = $conn->prepare("SELECT fm.FacultyID, CONCAT(u.FirstName, ' ', u.LastName) AS FacultyName, u.FirstName, u.LastName FROM facultymembers fm JOIN users u ON fm.UserID = u.UserID ORDER BY u.FirstName, u.LastName");
 $stmtFaculties->execute();
-$faculties = $stmtFaculties->fetchAll($conn::FETCH_ASSOC);
+$faculties = $stmtFaculties->fetchAll(PDO::FETCH_ASSOC);
 
-// Fetch sections for filter and modal dro$connwn
+// Fetch sections for filter and modal dropdown
 $stmtSections = $conn->prepare("SELECT SectionID, SectionName FROM sections ORDER BY SectionName");
 $stmtSections->execute();
-$sections = $stmtSections->fetchAll($conn::FETCH_ASSOC);
+$sections = $stmtSections->fetchAll(PDO::FETCH_ASSOC);
 
 // Days array for filter
 $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
-?>
+// Get filters from GET
+$facultyFilter = isset($_GET['faculty']) ? $_GET['faculty'] : '';
+$dayFilter = isset($_GET['day']) ? $_GET['day'] : '';
+$sectionFilter = isset($_GET['section']) ? $_GET['section'] : '';
+$search = isset($_GET['search']) ? $_GET['search'] : '';
+$rowsPerPageOptions = [5, 10, 20, 50, 100];
+$rowsPerPage = isset($_GET['rowsPerPage']) && in_array($_GET['rowsPerPage'], $rowsPerPageOptions) ? $_GET['rowsPerPage'] : 10;
+$currentPage = isset($_GET['page']) ? (int) $_GET['page'] : 1;
+$offset = max(0, ($currentPage - 1) * $rowsPerPage);
+
+// Build where clauses and params
+$whereClauses = [];
+$queryParams = [];
+
+if (!empty($facultyFilter)) {
+    $whereClauses[] = "s.FacultyID = ?";
+    $queryParams[] = $facultyFilter;
+}
+
+if (!empty($dayFilter)) {
+    $whereClauses[] = "s.Day = ?";
+    $queryParams[] = $dayFilter;
+}
+
+if (!empty($sectionFilter)) {
+    $whereClauses[] = "s.SectionID = ?";
+    $queryParams[] = $sectionFilter;
+}
+
+if (!empty($search)) {
+    $searchKeywords = preg_split('/\s+/', $search, -1, PREG_SPLIT_NO_EMPTY);
+    if (!empty($searchKeywords)) {
+        $keywordClauses = [];
+        foreach ($searchKeywords as $keyword) {
+            $keywordClause = [];
+            $keyword = strtolower($keyword);
+            $keywordClause[] = "LOWER(c.SubjectName) LIKE LOWER(?)";
+            $keywordClause[] = "LOWER(u.FirstName) LIKE LOWER(?)";
+            $keywordClause[] = "LOWER(u.LastName) LIKE LOWER(?)";
+            $keywordClause[] = "LOWER(r.RoomName) LIKE LOWER(?)";
+            $keywordClause[] = "LOWER(se.SectionName) LIKE LOWER(?)";
+            $keywordClauses[] = '(' . implode(' OR ', $keywordClause) . ')';
+            $likeKeyword = '%' . $keyword . '%';
+            $queryParams[] = $likeKeyword;
+            $queryParams[] = $likeKeyword;
+            $queryParams[] = $likeKeyword;
+            $queryParams[] = $likeKeyword;
+            $queryParams[] = $likeKeyword;
+        }
+        $whereClauses[] = '(' . implode(' AND ', $keywordClauses) . ')';
+    }
+}
+
+$whereString = !empty($whereClauses) ? "WHERE " . implode(" AND ", $whereClauses) : "";
+
+// Count total rows
+$countSql = "SELECT COUNT(*) FROM schedules s
+    JOIN curriculums c ON s.CurriculumID = c.CurriculumID
+    JOIN facultymembers f ON s.FacultyID = f.FacultyID
+    JOIN users u ON f.UserID = u.UserID
+    JOIN rooms r ON s.RoomID = r.RoomID
+    JOIN sections se ON s.SectionID = se.SectionID
+    $whereString";
+
+$stmtCount = $conn->prepare($countSql);
+$stmtCount->execute($queryParams);
+$totalRows = $stmtCount->fetchColumn();
+$totalPages = ceil($totalRows / $rowsPerPage);
+
+// Fetch data with joins
+$sql = "SELECT s.ScheduleID, c.SubjectName, CONCAT(u.FirstName, ' ', u.LastName) AS FacultyName, s.Day, s.StartTime, s.EndTime, r.RoomName, se.SectionName, se.SectionID, r.RoomID
+    FROM schedules s
+    JOIN curriculums c ON s.CurriculumID = c.CurriculumID
+    JOIN facultymembers f ON s.FacultyID = f.FacultyID
+    JOIN users u ON f.UserID = u.UserID
+    JOIN rooms r ON s.RoomID = r.RoomID
+    JOIN sections se ON s.SectionID = se.SectionID
+    $whereString
+    ORDER BY s.ScheduleID ASC
+    LIMIT ?, ?";
+
+$stmt = $conn->prepare($sql);
+
+try {
+    $paramIndex = 1;
+    if (!empty($queryParams)) {
+        foreach ($queryParams as $param) {
+            $stmt->bindValue($paramIndex++, $param);
+        }
+    }
+    $stmt->bindValue($paramIndex++, $offset, PDO::PARAM_INT);
+    $stmt->bindValue($paramIndex++, $rowsPerPage, PDO::PARAM_INT);
+
+    $stmt->execute();
+    $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    $data = [];
+    $totalRows = 0;
+    $totalPages = 0;
+}
