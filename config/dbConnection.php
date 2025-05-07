@@ -1,6 +1,9 @@
 <?php
+
 class Database
 {
+    require_once __DIR__ . '../vendor/autoload.php';
+    private $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
     private $host;
     private $port;
     private $user;
@@ -10,9 +13,11 @@ class Database
 
     public function __construct()
     {
-        $domainMode = strtolower($_ENV['DOMAIN_MODE'] ?? 'false') === 'true';
+        $this->dotenv->load();
+        
+        $domainMode = strtolower($_ENV['DOMAIN_MODE']) == 'true';
 
-        if ($domainMode) {
+        if (!$domainMode) {
             $this->host = $_ENV['DB_HOST'];
             $this->port = $_ENV['DB_PORT'];
             $this->user = $_ENV['DB_USER'];
