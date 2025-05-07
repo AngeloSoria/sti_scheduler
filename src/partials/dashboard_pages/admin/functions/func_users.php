@@ -233,7 +233,6 @@ if (isset($_POST['action'])) {
                       </div>';
             }
             exit;
-            break;
 
         case 'editUser':
             $editUserID = trim($_POST['editUserID']);
@@ -367,7 +366,6 @@ if (isset($_POST['action'])) {
                       </div>';
             }
             exit;
-            break;
 
         default:
             // Unknown action
