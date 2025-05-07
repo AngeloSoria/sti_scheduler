@@ -21,7 +21,8 @@
                 </button>
             </div>
             <div class="p-6 space-y-6">
-                <form method="POST" action="" id="editScheduleForm">
+                <form method="POST" id="editScheduleForm">
+                    <input type="hidden" name="context" value="editSchedule" />
                     <input type="hidden" name="editScheduleID" id="editScheduleID" />
                     <div class="mb-4">
                         <label for="editFacultyName" class="block text-gray-700 text-sm font-bold mb-2">

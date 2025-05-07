@@ -1,9 +1,5 @@
 <?php
 
-if (!class_exists('Database')) {
-    require_once __DIR__ . '/functions/func_users.php';
-}
-
 require_once __DIR__ . '/functions/func_users.php';
 
 ?>
@@ -164,106 +160,7 @@ require_once __DIR__ . '/functions/func_users.php';
 </section>
 
 <!-- Edit User Modal -->
-<div id="editUserModal" tabindex="-1" aria-hidden="true"
-    class="opacity-0 pointer-events-none overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full transition-opacity duration-300 ease-in-out">
-    <!-- Backdrop -->
-    <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity duration-300 ease-in-out"></div>
-    <div class="relative p-4 w-full max-w-md max-h-full z-10">
-        <div class="relative bg-white rounded-lg shadow">
-            <div class="flex items-center justify-between p-4 border-b rounded-t">
-                <h3 class="text-xl font-semibold text-gray-900">
-                    Edit User
-                </h3>
-                <button type="button"
-                    class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center"
-                    data-modal-hide="editUserModal">
-                    <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"
-                        xmlns="http://www.w3.org/2000/svg">
-                        <path fill-rule="evenodd"
-                            d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                            clip-rule="evenodd"></path>
-                    </svg>
-                    <span class="sr-only">Close modal</span>
-                </button>
-            </div>
-            <div class="p-6 space-y-6">
-                <form method="POST" action="src/partials/dashboard_pages/admin/functions/func_users.php"
-                    id="editUserForm" enctype="multipart/form-data">
-                    <input type="hidden" name="editUserID" id="editUserID" />
-                    <div class="mb-4">
-                        <label for="editFirstName" class="block text-gray-700 text-sm font-bold mb-2">
-                            First Name:
-                            <span class="text-red-500">*</span>
-                        </label>
-                        <input type="text" name="editFirstName" id="editFirstName" required
-                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                            placeholder="First Name">
-                    </div>
-                    <div class="mb-4">
-                        <?php if ($type === 'admin' || $type === 'faculty'): ?>
-                            <label for="editMiddleName" class="block text-gray-700 text-sm font-bold mb-2">
-                                Middle Name:
-                            </label>
-                            <input type="text" name="editMiddleName" id="editMiddleName"
-                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                placeholder="Middle Name">
-                        <?php endif; ?>
-                    </div>
-                    <div class="mb-4">
-                        <label for="editLastName" class="block text-gray-700 text-sm font-bold mb-2">
-                            Last Name:
-                            <span class="text-red-500">*</span>
-                        </label>
-                        <input type="text" name="editLastName" id="editLastName" required
-                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                            placeholder="Last Name">
-                    </div>
-                    <?php if ($type === 'admin' || $type === 'faculty'): ?>
-                        <div class="mb-4">
-                            <label for="editUsernameDisplay" class="block text-gray-700 text-sm font-bold mb-2">
-                                Username:
-                                <span class="text-red-500">*</span>
-                            </label>
-                            <input type="text" id="editUsernameDisplay" readonly
-                                class="bg-gray-100 cursor-not-allowed shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                placeholder="Username">
-                            <input type="hidden" name="editUsername" id="editUsername" />
-                        </div>
-                    <?php endif; ?>
-                    <div class="mb-4">
-                        <label for="editPassword" class="block text-gray-700 text-sm font-bold mb-2">
-                            Password:
-                        </label>
-                        <input type="password" name="editPassword" id="editPassword"
-                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                            placeholder="New Password (leave blank to keep current)">
-                    </div>
-                    <div class="mb-4">
-                        <label for="editProfilePic" class="block text-gray-700 text-sm font-bold mb-2">
-                            Profile Picture:
-                        </label>
-                        <input type="file" name="editProfilePic" id="editProfilePic" accept="image/*" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4
-                            file:rounded file:border-0
-                            file:text-sm file:font-semibold
-                            file:bg-indigo-50 file:text-indigo-700
-                            hover:file:bg-indigo-100">
-                    </div>
-                    <div class="flex justify-end">
-                        <button type="button"
-                            class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-blue-300 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10"
-                            data-modal-hide="editUserModal">
-                            Cancel
-                        </button>
-                        <button type="submit" name="btnEdit"
-                            class="bg-indigo-500 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline ml-3">
-                            Save Changes
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
+<?php include_once __DIR__ . '/../../modals/admin/edit_user_modal.php'; ?>
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
@@ -280,6 +177,7 @@ require_once __DIR__ . '/functions/func_users.php';
                             'Content-Type': 'application/x-www-form-urlencoded',
                         },
                         body: new URLSearchParams({
+                            'action': 'deleteUser',
                             'deleteUserID': userID
                         })
                     })
@@ -331,6 +229,91 @@ require_once __DIR__ . '/functions/func_users.php';
                 document.getElementById('editLastName').value = lastName;
                 document.getElementById('editPassword').value = '';
 
+                // New code to handle role and show/hide subject selection
+                const role = '<?php echo $type; ?>';
+                const editDepartmentDiv = document.getElementById('editDepartmentDiv');
+                const editProgramDiv = document.getElementById('editProgramDiv');
+                const editPreferredSubjectsDiv = document.getElementById('editPreferredSubjectsDiv');
+                const editDepartment = document.getElementById('editDepartment');
+                const editProgram = document.getElementById('editProgram');
+                const editPreferredSubjects = document.getElementById('editPreferredSubjects');
+
+                if (role === 'faculty') {
+                    editDepartmentDiv.classList.remove('hidden');
+                    editProgramDiv.classList.remove('hidden');
+                    editPreferredSubjectsDiv.classList.remove('hidden');
+
+                    // Fetch and populate user's current department, program, and preferred subjects
+                    fetch('src/partials/dashboard_pages/admin/functions/func_users.php?action=getUserDetails&userID=' + userID)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.departmentID) {
+                                editDepartment.value = data.departmentID;
+                            }
+                            if (data.programID) {
+                                editProgram.value = data.programID;
+                            }
+                            // Fetch subjects for the program
+                            fetch('src/partials/modals/admin/add_new_users_modal.php?action=getCurriculumSubjects&programId=' + data.programID)
+                                .then(response => response.json())
+                                .then(subjects => {
+                                    editPreferredSubjects.innerHTML = '';
+                                    subjects.forEach(subject => {
+                                        const option = document.createElement('option');
+                                        option.value = subject.CurriculumID;
+                                        option.textContent = subject.SubjectName;
+                                        if (data.preferredSubjects && data.preferredSubjects.includes(subject.CurriculumID)) {
+                                            option.selected = true;
+                                        }
+                                        editPreferredSubjects.appendChild(option);
+                                    });
+                                });
+                        });
+                } else {
+                    editDepartmentDiv.classList.add('hidden');
+                    editProgramDiv.classList.add('hidden');
+                    editPreferredSubjectsDiv.classList.add('hidden');
+                }
+
+                // Event listeners for cascading selects
+                editDepartment.addEventListener('change', function () {
+                    const selectedDeptId = this.value;
+                    let found = false;
+                    for (let option of editProgram.options) {
+                        if (option.getAttribute('data-department') === selectedDeptId) {
+                            editProgram.value = option.value;
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found) {
+                        editProgram.value = '';
+                    }
+                    editProgram.dispatchEvent(new Event('change'));
+                });
+
+                editProgram.addEventListener('change', function () {
+                    const programId = this.value;
+                    editPreferredSubjects.innerHTML = '';
+                    if (!programId) return;
+                    fetch('src/partials/modals/admin/add_new_users_modal.php?action=getCurriculumSubjects&programId=' + programId)
+                        .then(response => response.json())
+                        .then(subjects => {
+                            subjects.forEach(subject => {
+                                const option = document.createElement('option');
+                                option.value = subject.CurriculumID;
+                                option.textContent = subject.SubjectName;
+                                editPreferredSubjects.appendChild(option);
+                            });
+                        });
+                    // Update department select based on program
+                    const selectedOption = editProgram.options[editProgram.selectedIndex];
+                    const departmentId = selectedOption.getAttribute('data-department');
+                    if (departmentId) {
+                        editDepartment.value = departmentId;
+                    }
+                });
+
                 const editModal = document.getElementById('editUserModal');
                 if (editModal) {
                     editModal.classList.remove('opacity-0', 'pointer-events-none');
@@ -339,57 +322,68 @@ require_once __DIR__ . '/functions/func_users.php';
             });
         });
 
-        // Edit form submit handler with AJAX
-        const editUserForm = document.getElementById('editUserForm');
-        if (editUserForm) {
-            editUserForm.addEventListener('submit', function (e) {
-                e.preventDefault();
-                const formData = new FormData(editUserForm);
-                formData.append('btnEdit', 'Save Changes'); // Add btnEdit parameter for PHP detection
-                fetch('src/partials/dashboard_pages/admin/functions/func_users.php', {
-                    method: 'POST',
-                    body: formData
-                })
-                    .then(response => response.text())
-                    .then(data => {
-                        const messageContainer = document.getElementById('messageContainer');
-                        messageContainer.innerHTML = data;
-
-                        // Close modal on success
-                        if (data.includes('Success!')) {
-                            const editModal = document.getElementById('editUserModal');
-                            if (editModal) {
-                                editModal.classList.remove('opacity-100', 'pointer-events-auto');
-                                editModal.classList.add('opacity-0', 'pointer-events-none');
-                            }
-                            // Update the table row with new data
-                            const userID = document.getElementById('editUserID').value;
-                            const firstName = document.getElementById('editFirstName').value;
-                            const lastName = document.getElementById('editLastName').value;
-                            const username = document.getElementById('editUsername').value;
-
-                            // Find the row with matching userID
-                            const rows = document.querySelectorAll('tbody tr');
-                            rows.forEach(row => {
-                                const editBtn = row.querySelector('.edit-btn');
-                                if (editBtn && editBtn.getAttribute('data-user') === userID) {
-                                    row.querySelector('td:nth-child(2)').textContent = firstName;
-                                    row.querySelector('td:nth-child(3)').textContent = lastName;
-                                    row.querySelector('td:nth-child(4)').textContent = username;
-                                }
-                            });
-                        }
-
-                        // Auto-dismiss messages after 3 seconds
-                        setTimeout(() => {
-                            messageContainer.innerHTML = '';
-                        }, 3000);
+            // Edit form submit handler with AJAX
+            const editUserForm = document.getElementById('editUserForm');
+            if (editUserForm) {
+                editUserForm.addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    const formData = new FormData(editUserForm);
+                    formData.append('btnEdit', 'Save Changes'); // Add btnEdit parameter for PHP detection
+                    formData.append('action', 'editUser'); // Explicitly add action for clarity
+                    fetch('src/partials/dashboard_pages/admin/functions/func_users.php', {
+                        method: 'POST',
+                        body: formData
                     })
-                    .catch(error => {
-                        console.error('Error:', error);
-                    });
-            });
-        }
+                        .then(response => response.text())
+                        .then(data => {
+                            const messageContainer = document.getElementById('messageContainer');
+                            messageContainer.innerHTML = data;
+
+                            // Close modal on success
+                            if (data.includes('Success!')) {
+                                const editModal = document.getElementById('editUserModal');
+                                if (editModal) {
+                                    editModal.classList.remove('opacity-100', 'pointer-events-auto');
+                                    editModal.classList.add('opacity-0', 'pointer-events-none');
+                                }
+                                // Update the table row with new data
+                                const userID = document.getElementById('editUserID').value;
+                                const firstName = document.getElementById('editFirstName').value;
+                                const lastName = document.getElementById('editLastName').value;
+                                const username = document.getElementById('editUsername').value;
+
+                                // Mask username as in the table
+                                function maskUsername(username) {
+                                    if (username.length <= 3) {
+                                        return username;
+                                    }
+                                    const visiblePart = username.substring(0, 3);
+                                    const maskedPart = '*'.repeat(username.length - 3);
+                                    return visiblePart + maskedPart;
+                                }
+
+                                // Find the row with matching userID
+                                const rows = document.querySelectorAll('tbody tr');
+                                rows.forEach(row => {
+                                    const editBtn = row.querySelector('.edit-btn');
+                                    if (editBtn && editBtn.getAttribute('data-user') === userID) {
+                                        row.querySelector('td:nth-child(2)').textContent = firstName;
+                                        row.querySelector('td:nth-child(3)').textContent = lastName;
+                                        row.querySelector('td:nth-child(4)').textContent = maskUsername(username);
+                                    }
+                                });
+                            }
+
+                            // Auto-dismiss messages after 3 seconds
+                            setTimeout(() => {
+                                messageContainer.innerHTML = '';
+                            }, 3000);
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                        });
+                });
+            }
 
         // Modal close buttons
         document.querySelectorAll('[data-modal-hide]').forEach(button => {

@@ -3,14 +3,14 @@
 // require_once __DIR__ . '/../../dashboard_pages/admin/functions/func_schedules.php';
 
 // Handle AJAX request for preferred subjects by FacultyID
-    if (isset($_GET['action']) && $_GET['action'] === 'getPreferredSubjects' && isset($_GET['facultyId'])) {
-        header('Content-Type: application/json');
-        $facultyId = $_GET['facultyId'];
-        $preferredSubjects = getPreferredSubjectsByFaculty($facultyId);
-        echo json_encode($preferredSubjects);
-        exit;
-    }
-    $rooms = getRooms();
+if (isset($_GET['action']) && $_GET['action'] === 'getPreferredSubjects' && isset($_GET['facultyId'])) {
+    header('Content-Type: application/json');
+    $facultyId = $_GET['facultyId'];
+    $preferredSubjects = getPreferredSubjectsByFaculty($facultyId);
+    echo json_encode($preferredSubjects);
+    exit;
+}
+$rooms = getRooms();
 ?>
 
 <div id="addNewScheduleModal" tabindex="-1" aria-hidden="true"
@@ -36,7 +36,11 @@
                 </button>
             </div>
             <div class="p-6 space-y-6">
-                <form method="POST" action="" id="addNewScheduleForm">
+                <form method="POST" id="addNewScheduleForm">
+                    <input type="hidden" name="context" value="addSchedule">
+                    <div id="conflictError"
+                        class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"
+                        role="alert"></div>
                     <div class="mb-4">
                         <label for="addFacultyID" class="block text-gray-700 text-sm font-bold mb-2">
                             Faculty:
@@ -111,21 +115,23 @@
                             <?php endforeach; ?>
                         </select>
                     </div>
-                    <div class="mb-4">
-                        <label for="addStartTime" class="block text-gray-700 text-sm font-bold mb-2">
-                            Start Time:
-                            <span class="text-red-500">*</span>
-                        </label>
-                        <input type="time" name="addStartTime" id="addStartTime" required
-                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" />
-                    </div>
-                    <div class="mb-6">
-                        <label for="addEndTime" class="block text-gray-700 text-sm font-bold mb-2">
-                            End Time:
-                            <span class="text-red-500">*</span>
-                        </label>
-                        <input type="time" name="addEndTime" id="addEndTime" required
-                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" />
+                    <div class="mb-6 flex gap-4">
+                        <div class="flex-1">
+                            <label for="addStartTime" class="block text-gray-700 text-sm font-bold mb-2">
+                                Start Time:
+                                <span class="text-red-500">*</span>
+                            </label>
+                            <input type="time" name="addStartTime" id="addStartTime" required
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" />
+                        </div>
+                        <div class="flex-1">
+                            <label for="addEndTime" class="block text-gray-700 text-sm font-bold mb-2">
+                                End Time:
+                                <span class="text-red-500">*</span>
+                            </label>
+                            <input type="time" name="addEndTime" id="addEndTime" required
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" />
+                        </div>
                     </div>
                     <div class="flex justify-end">
                         <button type="button"
@@ -139,6 +145,99 @@
                         </button>
                     </div>
                 </form>
+
+                <script>
+                    // Fetch and populate preferred subjects based on selected faculty
+                    document.getElementById('addFacultyID').addEventListener('change', function () {
+                        const facultyId = this.value;
+                        const curriculumSelect = document.getElementById('addCurriculumID');
+                        curriculumSelect.innerHTML = '<option value="" disabled selected>Loading subjects...</option>';
+                        if (!facultyId) {
+                            curriculumSelect.innerHTML = '<option value="" disabled selected>Select a Subject</option>';
+                            return;
+                        }
+
+                        fetch('/src/partials/dashboard_pages/admin/ajax_schedule_handler.php?action=getPreferredSubjects&facultyId=' + facultyId)
+                            .then(response => response.json())
+                            .then(data => {
+                                curriculumSelect.innerHTML = '';
+                                if (data.length === 0) {
+                                    curriculumSelect.innerHTML = '<option value="" disabled selected>No preferred subjects found</option>';
+                                    return;
+                                }
+                                data.forEach(subject => {
+                                    const option = document.createElement('option');
+                                    option.value = subject.CurriculumID;
+                                    option.textContent = subject.SubjectName;
+                                    curriculumSelect.appendChild(option);
+                                });
+                            })
+                            .catch(error => {
+                                console.error('Error fetching preferred subjects:', error);
+                                curriculumSelect.innerHTML = '<option value="" disabled selected>Error loading subjects</option>';
+                            });
+                    });
+
+                    // Conflict check before form submission
+                    document.getElementById('addNewScheduleForm').addEventListener('submit', function (event) {
+                        event.preventDefault();
+
+                        const conflictErrorDiv = document.getElementById('conflictError');
+                        conflictErrorDiv.classList.add('hidden');
+                        conflictErrorDiv.textContent = '';
+
+                        const formData = new FormData(this);
+                        const days = formData.getAll('addDays[]');
+                        if (days.length === 0) {
+                            conflictErrorDiv.textContent = 'Please select at least one day.';
+                            conflictErrorDiv.classList.remove('hidden');
+                            return;
+                        }
+
+                        const roomID = formData.get('addRoomID');
+                        const startTime = formData.get('addStartTime');
+                        const endTime = formData.get('addEndTime');
+
+                        if (!roomID || !startTime || !endTime) {
+                            conflictErrorDiv.textContent = 'Please fill in all required fields.';
+                            conflictErrorDiv.classList.remove('hidden');
+                            return;
+                        }
+
+                        fetch('src/partials/dashboard_pages/admin/functions/func_schedules.php', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                            },
+                            body: new URLSearchParams({
+                                context: 'checkScheduleConflict',
+                                roomID: roomID,
+                                startTime: startTime,
+                                endTime: endTime,
+                                // Append days as multiple parameters
+                                ...days.reduce((acc, day) => {
+                                    acc.append('days[]', day);
+                                    return acc;
+                                }, new URLSearchParams())
+                            })
+                        })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.conflict) {
+                                    conflictErrorDiv.textContent = 'Schedule conflict detected. Please choose a different time or room.';
+                                    conflictErrorDiv.classList.remove('hidden');
+                                } else {
+                                    // No conflict, submit the form
+                                    this.submit();
+                                }
+                            })
+                            .catch(error => {
+                                conflictErrorDiv.textContent = 'Error checking schedule conflict. Please try again.';
+                                conflictErrorDiv.classList.remove('hidden');
+                                console.error('Error:', error);
+                            });
+                    });
+                </script>
             </div>
         </div>
     </div>

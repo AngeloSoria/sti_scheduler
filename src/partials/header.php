@@ -1,4 +1,5 @@
 <?php
+
 $isLoggedIn = isset($_SESSION['user']);
 
 if ($isLoggedIn) {

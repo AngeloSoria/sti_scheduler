@@ -1,4 +1,5 @@
 <?php
+ob_start();
 
 require_once __DIR__ . '/../../../../../config/dbConnection.php';
 
@@ -34,55 +35,269 @@ function getRooms()
     }
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['btnEdit'])) {
-    // Validate and sanitize input
-    $scheduleID = isset($_POST['editScheduleID']) ? intval($_POST['editScheduleID']) : 0;
-    $day = isset($_POST['editDay']) ? trim($_POST['editDay']) : '';
-    $roomID = isset($_POST['editRoomID']) ? intval($_POST['editRoomID']) : 0;
-    $sectionID = isset($_POST['editSectionID']) ? intval($_POST['editSectionID']) : 0;
-    $startTime = isset($_POST['editStartTime']) ? trim($_POST['editStartTime']) : '';
-    $endTime = isset($_POST['editEndTime']) ? trim($_POST['editEndTime']) : '';
-
-    // Debugging: log received values before validation
-    // error_log("Received POST values - ScheduleID: $scheduleID, Day: '$day', RoomID: $roomID, SectionID: $sectionID, StartTime: '$startTime', EndTime: '$endTime'");
-
-    if ($scheduleID > 0 && !empty($day) && $roomID > 0 && $sectionID > 0 && !empty($startTime) && !empty($endTime)) {
-        try {
-            $updateSql = "UPDATE schedules SET Day = ?, RoomID = ?, SectionID = ?, StartTime = ?, EndTime = ? WHERE ScheduleID = ?";
-            $stmtUpdate = $conn->prepare($updateSql);
-            $stmtUpdate->execute([$day, $roomID, $sectionID, $startTime, $endTime, $scheduleID]);
-
-            // Redirect to schedules.php with current query parameters to refresh the list
-            $queryParams = [];
-            if (isset($_GET['faculty'])) {
-                $queryParams['faculty'] = $_GET['faculty'];
-            }
-            if (isset($_GET['day'])) {
-                $queryParams['day'] = $_GET['day'];
-            }
-            if (isset($_GET['section'])) {
-                $queryParams['section'] = $_GET['section'];
-            }
-            if (isset($_GET['search'])) {
-                $queryParams['search'] = $_GET['search'];
-            }
-            if (isset($_GET['page'])) {
-                $queryParams['page'] = $_GET['page'];
-            }
-            if (isset($_GET['rowsPerPage'])) {
-                $queryParams['rowsPerPage'] = $_GET['rowsPerPage'];
-            }
-
-            $queryString = http_build_query($queryParams);
-            header("Location: schedules.php?" . $queryString);
-            exit;
-        } catch (PDOException $e) {
-            // Handle error (optional: log error)
-            echo '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">Error updating schedule.</div>';
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // New function to check schedule conflicts
+    function checkScheduleConflict($roomID, $days, $startTime, $endTime, $excludeScheduleID = null)
+    {
+        $db = new Database();
+        $conn = $db->getConnection();
+        if (empty($days)) {
+            return false;
         }
-    } else {
-        echo '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">Please fill in all required fields.</div>';
+        $placeholders = implode(',', array_fill(0, count($days), '?'));
+        // Correct time overlap condition: (StartTime < endTime) AND (EndTime > startTime)
+        $sql = "SELECT COUNT(*) FROM schedules WHERE RoomID = ? AND Day IN ($placeholders) AND (StartTime < ? AND EndTime > ?)";
+        $params = array_merge([$roomID], $days, [$endTime, $startTime]);
+        if ($excludeScheduleID !== null) {
+            $sql .= " AND ScheduleID != ?";
+            $params[] = $excludeScheduleID;
+        }
+        $stmt = $conn->prepare($sql);
+        $stmt->execute($params);
+        $count = $stmt->fetchColumn();
+        return $count > 0;
     }
+
+    // New function to check all conflicts for schedules and return conflict info
+    function getScheduleConflicts()
+    {
+        $db = new Database();
+        $conn = $db->getConnection();
+
+        // Fetch all schedules
+        $sql = "SELECT s.ScheduleID, s.SectionID, s.RoomID, s.Day, s.StartTime, s.EndTime, c.SubjectName
+                FROM schedules s
+                JOIN curriculums c ON s.CurriculumID = c.CurriculumID";
+        $stmt = $conn->prepare($sql);
+        $stmt->execute();
+        $schedules = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $conflicts = [];
+
+        // Helper function to check time overlap
+        function timesOverlap($start1, $end1, $start2, $end2)
+        {
+            return ($start1 < $end2) && ($start2 < $end1);
+        }
+
+        // Check conflicts
+        for ($i = 0; $i < count($schedules); $i++) {
+            for ($j = $i + 1; $j < count($schedules); $j++) {
+                $s1 = $schedules[$i];
+                $s2 = $schedules[$j];
+
+                // Check if same day
+                if ($s1['Day'] !== $s2['Day']) {
+                    continue;
+                }
+
+                // Check time overlap
+                if (!timesOverlap($s1['StartTime'], $s1['EndTime'], $s2['StartTime'], $s2['EndTime'])) {
+                    continue;
+                }
+
+                // Conflict conditions:
+
+                // 1. Room conflict: same room overlapping time
+                if ($s1['RoomID'] === $s2['RoomID']) {
+                    $conflicts[$s1['ScheduleID']][] = 'Room conflict with schedule ID ' . $s2['ScheduleID'];
+                    $conflicts[$s2['ScheduleID']][] = 'Room conflict with schedule ID ' . $s1['ScheduleID'];
+                }
+
+                // 2. Section multiple subjects overlapping time
+                if ($s1['SectionID'] === $s2['SectionID'] && $s1['SubjectName'] !== $s2['SubjectName']) {
+                    $conflicts[$s1['ScheduleID']][] = 'Section has multiple subjects overlapping with schedule ID ' . $s2['ScheduleID'];
+                    $conflicts[$s2['ScheduleID']][] = 'Section has multiple subjects overlapping with schedule ID ' . $s1['ScheduleID'];
+                }
+
+                // 3. Section multiple rooms overlapping time (same section, different rooms)
+                if ($s1['SectionID'] === $s2['SectionID'] && $s1['RoomID'] !== $s2['RoomID']) {
+                    $conflicts[$s1['ScheduleID']][] = 'Section has multiple rooms scheduled overlapping with schedule ID ' . $s2['ScheduleID'];
+                    $conflicts[$s2['ScheduleID']][] = 'Section has multiple rooms scheduled overlapping with schedule ID ' . $s1['ScheduleID'];
+                }
+            }
+        }
+
+        return $conflicts;
+    }
+
+    switch ($_POST['context']) {
+        case 'checkScheduleConflict':
+            $roomID = isset($_POST['roomID']) ? intval($_POST['roomID']) : 0;
+            $days = isset($_POST['days']) ? $_POST['days'] : [];
+            $startTime = isset($_POST['startTime']) ? trim($_POST['startTime']) : '';
+            $endTime = isset($_POST['endTime']) ? trim($_POST['endTime']) : '';
+
+            $conflict = checkScheduleConflict($roomID, $days, $startTime, $endTime);
+            header('Content-Type: application/json');
+            echo json_encode(['conflict' => $conflict]);
+            exit();
+
+        case 'addSchedule':
+            // Validate and sanitize input
+            $facultyID = isset($_POST['addFacultyID']) ? intval($_POST['addFacultyID']) : 0;
+            $curriculumID = isset($_POST['addCurriculumID']) ? intval($_POST['addCurriculumID']) : 0;
+            $days = isset($_POST['addDays']) ? $_POST['addDays'] : [];
+            $roomID = isset($_POST['addRoomID']) ? intval($_POST['addRoomID']) : 0;
+            $sectionID = isset($_POST['addSectionID']) ? intval($_POST['addSectionID']) : 0;
+            $startTime = isset($_POST['addStartTime']) ? trim($_POST['addStartTime']) : '';
+            $endTime = isset($_POST['addEndTime']) ? trim($_POST['addEndTime']) : '';
+
+            if ($facultyID >= 0 && $curriculumID >= 0 && !empty($days) && $roomID >= 0 && $sectionID >= 0 && !empty($startTime) && !empty($endTime)) {
+                // Server-side conflict check
+                $conflict = checkScheduleConflict($roomID, $days, $startTime, $endTime);
+                if ($conflict == true) {
+                    echo '<div id="alert-message" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">Schedule conflict detected. Please choose a different time or room.</div>
+                            <script>
+                                setTimeout(function() {
+                                    var alertElem = document.getElementById("alert-message");
+                                    if (alertElem) {
+                                        alertElem.style.display = "none";
+                                    }
+                                }, 5000);
+                            </script>';
+                } else {
+                    try {
+                        if (is_array($days)) {
+                            $dayString = implode(',', $days);
+                        } else {
+                            $dayString = $days;
+                        }
+                        $insertSql = "INSERT INTO schedules (FacultyID, CurriculumID, Day, RoomID, SectionID, StartTime, EndTime) VALUES (?, ?, ?, ?, ?, ?, ?)";
+                        $stmtInsert = $conn->prepare($insertSql);
+                        $stmtInsert->execute([$facultyID, $curriculumID, $dayString, $roomID, $sectionID, $startTime, $endTime]);
+
+                        // Redirect to schedules.php with current query parameters to refresh the list
+                        header("Location: dashboard?" . http_build_query($_GET));
+                        exit();
+                    } catch (PDOException $e) {
+                        // Handle error (optional: log error)
+                        echo '<div id="alert-message" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">Error adding schedule.</div>
+                            <script>
+                                setTimeout(function() {
+                                    var alertElem = document.getElementById("alert-message");
+                                    if (alertElem) {
+                                        alertElem.style.display = "none";
+                                    }
+                                }, 5000);
+                            </script>';
+                    }
+                }
+} else {
+    echo '<div id="alert-message" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">Please fill in all required fields.</div>
+    <script>
+        setTimeout(function() {
+            var alertElem = document.getElementById("alert-message");
+            if (alertElem) {
+                alertElem.style.display = "none";
+            }
+        }, 5000);
+    </script>';
+}
+            break;
+        case 'editSchedule':
+            // Validate and sanitize input
+            $scheduleID = $_POST['editScheduleID'];
+            $day = isset($_POST['editDay']) ? trim($_POST['editDay']) : '';
+            $roomID = isset($_POST['editRoomID']) ? intval($_POST['editRoomID']) : 0;
+            $sectionID = isset($_POST['editSectionID']) ? intval($_POST['editSectionID']) : 0;
+            $startTime = isset($_POST['editStartTime']) ? trim($_POST['editStartTime']) : '';
+            $endTime = isset($_POST['editEndTime']) ? trim($_POST['editEndTime']) : '';
+
+            if ($scheduleID > 0 && !empty($day) && $roomID > 0 && $sectionID > 0 && !empty($startTime) && !empty($endTime)) {
+                // Convert day string to array for conflict check
+                $daysArray = [$day];
+                // Check for schedule conflict excluding current scheduleID
+                $conflict = checkScheduleConflict($roomID, $daysArray, $startTime, $endTime, $scheduleID);
+                if ($conflict) {
+                    echo '<div id="alert-message" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">Schedule conflict detected. Please choose a different time or room.</div>
+                    <script>
+                        setTimeout(function() {
+                            var alertElem = document.getElementById("alert-message");
+                            if (alertElem) {
+                                alertElem.style.display = "none";
+                            }
+                        }, 5000);
+                    </script>';
+                } else {
+                    try {
+                        $updateSql = "UPDATE schedules SET Day = ?, RoomID = ?, SectionID = ?, StartTime = ?, EndTime = ? WHERE ScheduleID = ?";
+                        $stmtUpdate = $conn->prepare($updateSql);
+                        $stmtUpdate->execute([$day, $roomID, $sectionID, $startTime, $endTime, $scheduleID]);
+
+                        // Redirect to schedules.php with current query parameters to refresh the list
+                        $queryParams = [];
+                        if (isset($_GET['faculty'])) {
+                            $queryParams['faculty'] = $_GET['faculty'];
+                        }
+                        if (isset($_GET['day'])) {
+                            $queryParams['day'] = $_GET['day'];
+                        }
+                        if (isset($_GET['section'])) {
+                            $queryParams['section'] = $_GET['section'];
+                        }
+                        if (isset($_GET['search'])) {
+                            $queryParams['search'] = $_GET['search'];
+                        }
+                        if (isset($_GET['page'])) {
+                            $queryParams['page'] = $_GET['page'];
+                        }
+                        if (isset($_GET['rowsPerPage'])) {
+                            $queryParams['rowsPerPage'] = $_GET['rowsPerPage'];
+                        }
+
+                        $queryString = http_build_query($queryParams);
+                    } catch (PDOException $e) {
+                        // Handle error (optional: log error)
+                        echo '<div id="alert-message" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">Error updating schedule.</div>
+                        <script>
+                            setTimeout(function() {
+                                var alertElem = document.getElementById("alert-message");
+                                if (alertElem) {
+                                    alertElem.style.display = "none";
+                                }
+                            }, 5000);
+                        </script>';
+                    }
+                }
+            } else {
+                echo '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">Please fill in all required fields.</div>';
+            }
+            break;
+        case 'deleteSchedule':
+            // Validate and sanitize input
+            $scheduleID = isset($_POST['deleteScheduleID']) ? intval($_POST['deleteScheduleID']) : 0;
+            if (isset($scheduleID)) {
+                try {
+                    $deleteSql = "DELETE FROM schedules WHERE ScheduleID = ?";
+                    $stmtDelete = $conn->prepare($deleteSql);
+                    $stmtDelete->execute([$scheduleID]);
+                } catch (PDOException $e) {
+                    // Handle error (optional: log error)
+                    echo '<div id="alert-message" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">Error deleting schedule.</div>
+<script>
+    setTimeout(function() {
+        var alertElem = document.getElementById("alert-message");
+        if (alertElem) {
+            alertElem.style.display = "none";
+        }
+    }, 5000);
+</script>';
+                }
+            } else {
+                echo '<div id="alert-message" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">Invalid schedule ID.</div>
+<script>
+    setTimeout(function() {
+        var alertElem = document.getElementById("alert-message");
+        if (alertElem) {
+            alertElem.style.display = "none";
+        }
+    }, 5000);
+</script>';
+            }
+            break;
+    }
+
 }
 
 // Load Data for Filters and Page Load

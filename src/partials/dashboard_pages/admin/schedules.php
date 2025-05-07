@@ -310,6 +310,7 @@ require_once __DIR__ . '/functions/func_schedules.php';
                             'Content-Type': 'application/x-www-form-urlencoded',
                         },
                         body: new URLSearchParams({
+                            'context': 'deleteSchedule',
                             'deleteScheduleID': scheduleID
                         })
                     })
