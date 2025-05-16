@@ -165,6 +165,7 @@ if (isset($_POST['btnEdit'])) {
     }
 }
 
+// Handle Delete Curriculum
 if (isset($_POST['deleteCurriculumID'])) {
     $deleteCurriculumID = $_POST['deleteCurriculumID'];
     error_log("Delete request received for CurriculumID: " . $deleteCurriculumID);
@@ -210,6 +211,7 @@ if (isset($_POST['deleteCurriculumID'])) {
     exit;
 }
 
+// Handle AJAX request for filtered data
 if (isset($_GET['ajax']) && $_GET['ajax'] == '1') {
     // AJAX request for filtered data, return HTML table rows only
     $programFilter = isset($_GET['program']) ? $_GET['program'] : '';

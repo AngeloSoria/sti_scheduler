@@ -431,3 +431,50 @@ require_once __DIR__ . '/functions/func_curriculums.php';
             }
         });
     </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const exportCSVBtn = document.getElementById('exportCSVBtn');
+            exportCSVBtn.addEventListener('click', function () {
+                const table = document.querySelector('table.min-w-full');
+                if (!table) return;
+
+                let csvContent = '';
+                const rows = table.querySelectorAll('thead tr, tbody tr');
+
+                rows.forEach(row => {
+                    // Only include visible rows
+                    if (row.offsetParent === null) return;
+
+                    const cols = row.querySelectorAll('th, td');
+                    let rowData = [];
+                    // Exclude the last column (Actions)
+                    const colsToProcess = Array.from(cols).slice(0, -1);
+                    colsToProcess.forEach(col => {
+                        // Only include visible columns
+                        if (col.offsetParent === null) return;
+                        // Escape double quotes by doubling them
+                        let cellText = col.textContent.trim().replace(/"/g, '""');
+                        // Wrap cell text in double quotes
+                        rowData.push(`"${cellText}"`);
+                    });
+                    csvContent += rowData.join(',') + '\r\n';
+                });
+
+                // Create a Blob with CSV data and trigger download
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                // Add current date to filename in year-month-day format
+                const date = new Date();
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                a.download = `curriculums_export_${year}-${month}-${day}.csv`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            });
+        });
+    </script>
