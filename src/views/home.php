@@ -17,7 +17,7 @@ require_once __DIR__ . '../../auth/login.php';
 
             <!-- Hero -->
             <section class="bg-white py-12 text-center">
-                <h1 class="text-4xl font-bold text-lapis-lazuli-3">Welcome to Schedulr</h1>
+                <h1 class="text-4xl font-bold text-lapis-lazuli-3">Welcome to Schedflow</h1>
                 <p class="mt-2 text-gray-600">A simple and efficient scheduling system designed to manage courses,
                     faculty assignments, and room allocations with ease.</p>
             </section>

@@ -67,7 +67,7 @@ if ($isLoggedIn) {
         <!-- Left: Logo and Title -->
         <a href="<?php echo $isLoggedIn ? '/dashboard' : '/'; ?>" class="flex items-center space-x-2">
             <img src="/assets/img/STI_LOGO_for_eLMS.png" alt="STI Logo" class="w-auto h-14">
-            <span class="text-xl font-bold text-blue-900">Schedulr</span>
+            <span class="text-xl font-bold text-blue-900">Schedflow</span>
         </a>
 
         <!-- Right: Navigation or Profile -->
