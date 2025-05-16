@@ -92,10 +92,19 @@ $programs = getPrograms();
                 <label for="addRoleSelect" class="block mb-1 text-gray-700 font-semibold">Role</label>
                 <select id="addRoleSelect" name="addRoleSelect"
                     class="w-full border border-gray-300 p-3 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-300"
-                    required>
-                    <option value="admin" selected>Admin</option>
-                    <option value="faculty">Faculty</option>
+                    required <?php if (isset($_GET['type']) && in_array($_GET['type'], ['admin', 'faculty']))
+                        echo 'disabled'; ?>>
+                    <option value="admin" <?php if (isset($_GET['type']) && $_GET['type'] === 'admin')
+                        echo 'selected'; ?>>Admin</option>
+                    <option value="faculty" <?php if (isset($_GET['type']) && $_GET['type'] === 'faculty')
+                        echo 'selected'; ?>>Faculty</option>
                 </select>
+                <?php if (isset($_GET['type']) && in_array($_GET['type'], ['admin', 'faculty'])): ?>
+                    <input type="hidden" name="addRoleSelect" value="<?php echo htmlspecialchars($_GET['type']); ?>"
+                        id="hiddenAddRoleSelect">
+                <?php else: ?>
+                    <input type="hidden" name="addRoleSelect" id="hiddenAddRoleSelect" value="">
+                <?php endif; ?>
             </div>
             <div id="departmentDiv" class="hidden">
                 <label for="addDepartment" class="block mb-1 text-gray-700 font-semibold">Department</label>
@@ -159,11 +168,12 @@ $programs = getPrograms();
         modal.classList.add('opacity-0', 'pointer-events-none');
     }
 
-    document.getElementById('addRoleSelect').addEventListener('change', function () {
+    function updateRoleDependentFields() {
+        const roleSelect = document.getElementById('addRoleSelect');
         const departmentDiv = document.getElementById('departmentDiv');
         const programDiv = document.getElementById('programDiv');
         const preferredSubjectsDiv = document.getElementById('preferredSubjectsDiv');
-        if (this.value === 'faculty') {
+        if (roleSelect.value === 'faculty') {
             departmentDiv.classList.remove('hidden');
             programDiv.classList.remove('hidden');
             preferredSubjectsDiv.classList.remove('hidden');
@@ -172,7 +182,26 @@ $programs = getPrograms();
             programDiv.classList.add('hidden');
             preferredSubjectsDiv.classList.add('hidden');
         }
+    }
+
+    document.getElementById('addRoleSelect').addEventListener('change', function () {
+        updateRoleDependentFields();
+        // Update hidden input value when role select changes
+        const hiddenRoleInput = document.getElementById('hiddenAddRoleSelect');
+        if (hiddenRoleInput) {
+            hiddenRoleInput.value = this.value;
+        }
     });
+
+    // Call on page load to set initial state based on pre-selected role
+    updateRoleDependentFields();
+
+    // Initialize hidden input value on page load
+    const roleSelect = document.getElementById('addRoleSelect');
+    const hiddenRoleInput = document.getElementById('hiddenAddRoleSelect');
+    if (hiddenRoleInput && roleSelect) {
+        hiddenRoleInput.value = roleSelect.value;
+    }
 
     // Auto-select program to same value as department if exists
     document.getElementById('addDepartment').addEventListener('change', function () {

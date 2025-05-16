@@ -4,6 +4,146 @@ require_once __DIR__ . '/functions/func_schedules.php';
 
 ?>
 
+<style>
+    /* Print styles */
+    @media print {
+
+        /* Hide sidebar, header, and footer */
+        #sidebar,
+        header,
+        footer,
+        #addNewBtn,
+        #printBtn,
+        form#filterForm,
+        .inline-flex[role="group"] {
+            display: none !important;
+        }
+
+        /* Hide the existing h1 title */
+        h1.text-lg {
+            display: none !important;
+        }
+
+        /* Show print header */
+        .print-header {
+            display: block !important;
+            margin-bottom: 1rem;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            
+        }
+        
+        body {
+            background: transparent !important;
+        }
+
+        /* Make the schedules section take full width with margin and white background */
+        section {
+            box-shadow: none !important;
+            border-radius: 0 !important;
+            background: transparent !important;
+            padding: 1rem !important;
+            margin: 1rem !important;
+        }
+
+        /* Table adjustments for print */
+        table {
+            width: 100% !important;
+            border-collapse: collapse !important;
+            font-size: 10pt !important;
+            margin-top: 0.5rem;
+            background: transparent !important;
+        }
+
+        th,
+        td {
+            border: 1px solid #000 !important;
+            padding: 4px 6px !important;
+            color: #000 !important;
+            text-align: left !important;
+        }
+
+        /* Remove hover and focus styles */
+        tr:hover,
+        tr:focus {
+            background: none !important;
+        }
+
+        /* Hide action buttons column */
+        th:last-child,
+        td:last-child {
+            display: none !important;
+        }
+    }
+
+    /* Hide print header by default */
+    .print-header {
+        display: none;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const printBtn = document.getElementById('printBtn');
+        if (printBtn) {
+            printBtn.addEventListener('click', function () {
+                window.print();
+            });
+        }
+    });
+</script>
+
+<?php
+// Prepare filter display text for print header
+
+// Find faculty full name by ID
+$facultyName = '';
+if (!empty($facultyFilter)) {
+    foreach ($faculties as $faculty) {
+        if ($faculty['FacultyID'] == $facultyFilter) {
+            $facultyName = htmlspecialchars($faculty['FirstName'] . ' ' . $faculty['LastName']);
+            break;
+        }
+    }
+}
+
+// Find section name by ID
+$sectionName = '';
+if (!empty($sectionFilter)) {
+    foreach ($sections as $section) {
+        if ($section['SectionID'] == $sectionFilter) {
+            $sectionName = htmlspecialchars($section['SectionName']);
+            break;
+        }
+    }
+}
+
+$filterTexts = [];
+if (!empty($facultyName)) {
+    $filterTexts[] = 'Faculty: ' . $facultyName;
+}
+if (!empty($dayFilter)) {
+    $filterTexts[] = 'Day: ' . htmlspecialchars($dayFilter);
+}
+if (!empty($sectionName)) {
+    $filterTexts[] = 'Section: ' . $sectionName;
+}
+if (!empty($search)) {
+    $filterTexts[] = 'Search: ' . htmlspecialchars($search);
+}
+?>
+
+<div class="print-header">
+    <h2 style="margin-bottom: 0.5rem; font-weight: bold; font-size: 18pt;">Schedules Report</h2>
+    <?php if (!empty($filterTexts)): ?>
+        <div style="font-size: 12pt;">
+            <?php echo implode(' | ', $filterTexts); ?>
+        </div>
+    <?php else: ?>
+        <div style="font-size: 12pt;">All Schedules</div>
+    <?php endif; ?>
+</div>
+
 <div id="messageContainer"></div>
 <section class="p-4 sm:p-6 bg-white rounded shadow-md overflow-x-auto">
     <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
@@ -16,6 +156,16 @@ require_once __DIR__ . '/functions/func_schedules.php';
                     <path d="M12 5v14M19 12H5"></path>
                 </svg>
                 Add New
+            </button>
+            <button type="button" id="printBtn"
+                class="flex items-center justify-center px-3 sm:px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 w-full sm:w-auto">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" fill="none"
+                    viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M6 9V2h12v7M6 18h12v4H6v-4zm0-3h12v1H6v-1z" />
+                </svg>
+                Print
             </button>
         </div>
     </div>

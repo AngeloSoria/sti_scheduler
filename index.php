@@ -56,7 +56,7 @@ $router->add('/dashboard', function () {
             'users'
         ],
         'faculty' => [
-            'my_schedules'
+            'my_schedule'
         ],
     ];
 

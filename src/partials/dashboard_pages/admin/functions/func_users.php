@@ -1,4 +1,3 @@
-
 <?php
 
 require_once(__DIR__ . "../../../../../../config/dbConnection.php");
@@ -103,6 +102,8 @@ if (isset($_POST['action'])) {
             $profilePic = $_FILES['addProfilePic'] ?? null;
             $type = $_POST['type'] ?? '';
 
+            $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+
             try {
                 // Check if username already exists
                 $stmtCheck = $conn->prepare("SELECT COUNT(*) FROM users WHERE Username = ?");
@@ -110,12 +111,24 @@ if (isset($_POST['action'])) {
                 $count = $stmtCheck->fetchColumn();
 
                 if ($count > 0) {
-                    $_SESSION['errorMessage'] = "Username already exists. Please choose another.";
+                    if ($isAjax) {
+                        header('Content-Type: application/json');
+                        echo json_encode(['success' => false, 'message' => "Username already exists. Please choose another."]);
+                        exit;
+                    } else {
+                        $_SESSION['errorMessage'] = "Username already exists. Please choose another.";
+                    }
                 } else {
                     if ($role === 'faculty' && (empty($department) || empty($program))) {
-                        $_SESSION['errorMessage'] = "Department and Program are required for faculty role.";
-                        header("Location: /dashboard?view=users&type=" . urlencode($type));
-                        exit;
+                        if ($isAjax) {
+                            header('Content-Type: application/json');
+                            echo json_encode(['success' => false, 'message' => "Department and Program are required for faculty role."]);
+                            exit;
+                        } else {
+                            $_SESSION['errorMessage'] = "Department and Program are required for faculty role.";
+                            header("Location: /dashboard?view=users&type=" . urlencode($type));
+                            exit;
+                        }
                     }
 
                     $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
@@ -131,16 +144,28 @@ if (isset($_POST['action'])) {
                         if (in_array($fileExt, $allowedExts)) {
                             $profilePicData = file_get_contents($fileTmpPath);
                             if ($profilePicData === false) {
-                                $_SESSION['errorMessage'] = "Failed to read profile picture data.";
-                                header("Location: /dashboard?view=users&type=" . urlencode($type));
-                                exit;
+                                if ($isAjax) {
+                                    header('Content-Type: application/json');
+                                    echo json_encode(['success' => false, 'message' => "Failed to read profile picture data."]);
+                                    exit;
+                                } else {
+                                    $_SESSION['errorMessage'] = "Failed to read profile picture data.";
+                                    header("Location: /dashboard?view=users&type=" . urlencode($type));
+                                    exit;
+                                }
                             }
                             $sql .= ", ProfilePic";
                             $params[] = $profilePicData;
                         } else {
-                            $_SESSION['errorMessage'] = "Invalid profile picture format. Allowed: jpg, jpeg, png, gif.";
-                            header("Location: /dashboard?view=users&type=" . urlencode($type));
-                            exit;
+                            if ($isAjax) {
+                                header('Content-Type: application/json');
+                                echo json_encode(['success' => false, 'message' => "Invalid profile picture format. Allowed: jpg, jpeg, png, gif."]);
+                                exit;
+                            } else {
+                                $_SESSION['errorMessage'] = "Invalid profile picture format. Allowed: jpg, jpeg, png, gif.";
+                                header("Location: /dashboard?view=users&type=" . urlencode($type));
+                                exit;
+                            }
                         }
                     }
 
@@ -172,16 +197,36 @@ if (isset($_POST['action'])) {
                             }
                         }
 
-                        $_SESSION['successMessage'] = "User added successfully!";
+                        if ($isAjax) {
+                            header('Content-Type: application/json');
+                            echo json_encode(['success' => true, 'message' => "User added successfully!"]);
+                            exit;
+                        } else {
+                            $_SESSION['successMessage'] = "User added successfully!";
+                        }
                     } else {
-                        $_SESSION['errorMessage'] = "Failed to add user. Please try again.";
+                        if ($isAjax) {
+                            header('Content-Type: application/json');
+                            echo json_encode(['success' => false, 'message' => "Failed to add user. Please try again."]);
+                            exit;
+                        } else {
+                            $_SESSION['errorMessage'] = "Failed to add user. Please try again.";
+                        }
                     }
                 }
             } catch (PDOException $e) {
-                $_SESSION['errorMessage'] = "Exception occurred during user addition. " . $e->getMessage();
+                if ($isAjax) {
+                    header('Content-Type: application/json');
+                    echo json_encode(['success' => false, 'message' => "Exception occurred during user addition. " . $e->getMessage()]);
+                    exit;
+                } else {
+                    $_SESSION['errorMessage'] = "Exception occurred during user addition. " . $e->getMessage();
+                }
             }
-            header("Location: /dashboard?view=users&type=" . urlencode($type));
-            exit;
+            if (!$isAjax) {
+                header("Location: /dashboard?view=users&type=" . urlencode($type));
+                exit;
+            }
 
         case 'deleteUser':
             $deleteUserID = $_POST['deleteUserID'];
