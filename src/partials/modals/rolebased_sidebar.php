@@ -1,5 +1,5 @@
 <aside id="sidebar"
-    class="w-64 bg-white p-4 shadow h-screen transition-width duration-300 ease-in-out overflow-hidden relative">
+    class="z-10 w-64 bg-white p-4 shadow h-screen transition-width duration-300 ease-in-out overflow-hidden relative">
     <!-- Sidebar Toggle Button -->
     <section class="w-full flex items-center justify-end mb-6">
         <button id="sidebarToggleBtn" aria-label="Toggle Sidebar" title="Toggle Sidebar"
@@ -264,7 +264,7 @@
             top: 0;
             left: 0;
             height: 100vh !important;
-            z-index: 9999;
+            z-index: 9999 !important;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
         }
     }

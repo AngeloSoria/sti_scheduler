@@ -61,7 +61,7 @@ if ($isLoggedIn) {
     }
 </style>
 
-<header class="bg-white text-gray-800 shadow-md z-10 border-b border-gray-200">
+<header class="bg-white text-gray-800 shadow-md z-20 border-b border-gray-200">
     <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
 
         <!-- Left: Logo and Title -->
