@@ -74,6 +74,10 @@ require_once __DIR__ . '/functions/func_schedules.php';
         td:last-child {
             display: none !important;
         }
+
+        #rowCountTools {
+            display: none !important;
+        }
     }
 
     /* Hide print header by default */
@@ -215,7 +219,7 @@ if (!empty($search)) {
                 </select>
 
                 <input type="text" id="search" name="search" value="<?php echo htmlspecialchars($search); ?>"
-                    placeholder="Search..."
+                    placeholder="Search subject name..."
                     class="border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-auto ml-4" />
                 <button type="submit"
                     class="ml-2 px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -300,7 +304,7 @@ if (!empty($search)) {
         </table>
     </div>
 
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between mt-4 space-y-2 md:space-y-0">
+    <div id="rowCountTools" class="flex flex-col md:flex-row md:items-center md:justify-between mt-4 space-y-2 md:space-y-0">
         <div class="text-sm text-gray-700 flex items-center space-x-2">
             <span>
                 Showing <?php echo ($offset + 1); ?> to <?php echo min($offset + $rowsPerPage, $totalRows); ?> of
