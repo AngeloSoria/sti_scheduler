@@ -9,7 +9,6 @@ $conn = $db->getConnection();
 
 function getPreferredSubjectsByFaculty($facultyId)
 {
-    global $conn;
     try {
         $db = new Database();
         $conn = $db->getConnection();
@@ -23,7 +22,6 @@ function getPreferredSubjectsByFaculty($facultyId)
 
 function getRooms()
 {
-    global $conn;
     try {
         $db = new Database();
         $dbConn = $db->getConnection();
@@ -35,127 +33,85 @@ function getRooms()
     }
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // New function to check schedule conflicts
-    function checkScheduleConflict($roomID, $days, $startTime, $endTime, $excludeScheduleID = null)
-    {
-        $db = new Database();
-        $conn = $db->getConnection();
-        if (empty($days)) {
-            return false;
-        }
+// New function to check schedule conflicts
+function isScheduleConflicting($roomID, $days, $startTime, $endTime, $facultyID = null, $excludeScheduleID = null)
+{
+    // If no days provided, there can't be a conflict
+    if (empty($days)) {
+        return false;
+    }
+
+    $db = new Database();
+    $conn = $db->getConnection();
+
+    $conflicting_schedules_count = 0;
+
+    // [Conflict #1] Duplicate schedule for the same room and time.
+    $placeholders = implode(',', array_fill(0, count($days), '?'));
+    $sql = "SELECT COUNT(*) FROM schedules WHERE RoomID = ? AND Day IN ($placeholders) AND (StartTime < ? AND EndTime > ?)";
+    $params = array_merge([$roomID], $days, [$endTime, $startTime]);
+    if ($excludeScheduleID !== null) {
+        $sql .= " AND ScheduleID != ?";
+        $params[] = $excludeScheduleID;
+    }
+    $stmt = $conn->prepare($sql);
+    $stmt->execute($params);
+    $conflicting_schedules_count = $stmt->fetchColumn();
+
+    // [Conflict #2] Duplicate schedule for the same faculty and time.
+    if ($facultyID !== null) {
         $placeholders = implode(',', array_fill(0, count($days), '?'));
-        // Correct time overlap condition: (StartTime < endTime) AND (EndTime > startTime)
-        $sql = "SELECT COUNT(*) FROM schedules WHERE RoomID = ? AND Day IN ($placeholders) AND (StartTime < ? AND EndTime > ?)";
-        $params = array_merge([$roomID], $days, [$endTime, $startTime]);
+        $sql = "SELECT COUNT(*) FROM schedules WHERE FacultyID = ? AND Day IN ($placeholders) AND (StartTime < ? AND EndTime > ?)";
+        $params = array_merge([$facultyID], $days, [$endTime, $startTime]);
         if ($excludeScheduleID !== null) {
             $sql .= " AND ScheduleID != ?";
             $params[] = $excludeScheduleID;
         }
         $stmt = $conn->prepare($sql);
         $stmt->execute($params);
-        $count = $stmt->fetchColumn();
-        return $count > 0;
+        $conflicting_schedules_count += $stmt->fetchColumn();
     }
 
-    // New function to check all conflicts for schedules and return conflict info
-    function getScheduleConflicts()
-    {
-        $db = new Database();
-        $conn = $db->getConnection();
+    return $conflicting_schedules_count > 0;
+}
 
-        // Fetch all schedules
-        $sql = "SELECT s.ScheduleID, s.SectionID, s.RoomID, s.Day, s.StartTime, s.EndTime, c.SubjectName
-                FROM schedules s
-                JOIN curriculums c ON s.CurriculumID = c.CurriculumID";
-        $stmt = $conn->prepare($sql);
-        $stmt->execute();
-        $schedules = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        $conflicts = [];
-
-        // Helper function to check time overlap
-        function timesOverlap($start1, $end1, $start2, $end2)
-        {
-            return ($start1 < $end2) && ($start2 < $end1);
-        }
-
-        // Check conflicts
-        for ($i = 0; $i < count($schedules); $i++) {
-            for ($j = $i + 1; $j < count($schedules); $j++) {
-                $s1 = $schedules[$i];
-                $s2 = $schedules[$j];
-
-                // Check if same day
-                if ($s1['Day'] !== $s2['Day']) {
-                    continue;
-                }
-
-                // Check time overlap
-                if (!timesOverlap($s1['StartTime'], $s1['EndTime'], $s2['StartTime'], $s2['EndTime'])) {
-                    continue;
-                }
-
-                // Conflict conditions:
-
-                // 1. Room conflict: same room overlapping time
-                if ($s1['RoomID'] === $s2['RoomID']) {
-                    $conflicts[$s1['ScheduleID']][] = 'Room conflict with schedule ID ' . $s2['ScheduleID'];
-                    $conflicts[$s2['ScheduleID']][] = 'Room conflict with schedule ID ' . $s1['ScheduleID'];
-                }
-
-                // 2. Section multiple subjects overlapping time
-                if ($s1['SectionID'] === $s2['SectionID'] && $s1['SubjectName'] !== $s2['SubjectName']) {
-                    $conflicts[$s1['ScheduleID']][] = 'Section has multiple subjects overlapping with schedule ID ' . $s2['ScheduleID'];
-                    $conflicts[$s2['ScheduleID']][] = 'Section has multiple subjects overlapping with schedule ID ' . $s1['ScheduleID'];
-                }
-
-                // 3. Section multiple rooms overlapping time (same section, different rooms)
-                if ($s1['SectionID'] === $s2['SectionID'] && $s1['RoomID'] !== $s2['RoomID']) {
-                    $conflicts[$s1['ScheduleID']][] = 'Section has multiple rooms scheduled overlapping with schedule ID ' . $s2['ScheduleID'];
-                    $conflicts[$s2['ScheduleID']][] = 'Section has multiple rooms scheduled overlapping with schedule ID ' . $s1['ScheduleID'];
-                }
-            }
-        }
-
-        return $conflicts;
-    }
-
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     switch ($_POST['context']) {
-        case 'checkScheduleConflict':
+        case 'isScheduleConflicting':
             $roomID = isset($_POST['roomID']) ? intval($_POST['roomID']) : 0;
             $days = isset($_POST['days']) ? $_POST['days'] : [];
             $startTime = isset($_POST['startTime']) ? trim($_POST['startTime']) : '';
             $endTime = isset($_POST['endTime']) ? trim($_POST['endTime']) : '';
+            $facultyID = isset($_POST['addFacultyID']) ? trim($_POST['addFacultyID']) : '';
 
-            $conflict = checkScheduleConflict($roomID, $days, $startTime, $endTime);
+            $conflict = isScheduleConflicting($roomID, $days, $startTime, $endTime, $facultyID, null);
             header('Content-Type: application/json');
             echo json_encode(['conflict' => $conflict]);
             exit();
 
         case 'addSchedule':
-    // Validate and sanitize input
-    $facultyID = isset($_POST['addFacultyID']) ? intval($_POST['addFacultyID']) : 0;
-    $curriculumID = isset($_POST['addCurriculumID']) ? intval($_POST['addCurriculumID']) : 0;
-    $days = isset($_POST['addDays']) ? $_POST['addDays'] : [];
-    $roomID = isset($_POST['addRoomID']) ? intval($_POST['addRoomID']) : 0;
-    $sectionID = isset($_POST['addSectionID']) ? intval($_POST['addSectionID']) : 0;
-    $startTime = isset($_POST['addStartTime']) ? trim($_POST['addStartTime']) : '';
-    $endTime = isset($_POST['addEndTime']) ? trim($_POST['addEndTime']) : '';
+            // Validate and sanitize input
+            $facultyID = isset($_POST['addFacultyID']) ? intval($_POST['addFacultyID']) : 0;
+            $curriculumID = isset($_POST['addCurriculumID']) ? intval($_POST['addCurriculumID']) : 0;
+            $days = isset($_POST['addDays']) ? $_POST['addDays'] : [];
+            $roomID = isset($_POST['addRoomID']) ? intval($_POST['addRoomID']) : 0;
+            $sectionID = isset($_POST['addSectionID']) ? intval($_POST['addSectionID']) : 0;
+            $startTime = isset($_POST['addStartTime']) ? trim($_POST['addStartTime']) : '';
+            $endTime = isset($_POST['addEndTime']) ? trim($_POST['addEndTime']) : '';
+            $facultyID = isset($_POST['addFacultyID']) ? trim($_POST['addFacultyID']) : '';
 
-    if ($facultyID > 0 && $curriculumID > 0 && !empty($days) && $roomID > 0 && $sectionID > 0 && !empty($startTime) && !empty($endTime)) {
+            if ($facultyID > 0 && $curriculumID > 0 && !empty($days) && $roomID > 0 && $sectionID > 0 && !empty($startTime) && !empty($endTime)) {
+                // Check for conflicts for each day
+                $hasConflict = false;
+                foreach ($days as $day) {
+                    if (isScheduleConflicting($roomID, [$day], $startTime, $endTime, $facultyID, null)) {
+                        $hasConflict = true;
+                        break;
+                    }
+                }
 
-        // Check for conflicts for each day
-        $hasConflict = false;
-        foreach ($days as $day) {
-            if (checkScheduleConflict($roomID, [$day], $startTime, $endTime)) {
-                $hasConflict = true;
-                break;
-            }
-        }
-
-        if ($hasConflict) {
-            echo '<div id="alert-message" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+                if ($hasConflict) {
+                    echo '<div id="alert-message" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
                     Schedule conflict detected. Please choose a different time or room.
                   </div>
                   <script>
@@ -166,20 +122,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         }
                     }, 5000);
                   </script>';
-        } else {
-            try {
-                $insertSql = "INSERT INTO schedules (FacultyID, CurriculumID, Day, RoomID, SectionID, StartTime, EndTime) VALUES (?, ?, ?, ?, ?, ?, ?)";
-                $stmtInsert = $conn->prepare($insertSql);
+                } else {
+                    try {
+                        $insertSql = "INSERT INTO schedules (FacultyID, CurriculumID, Day, RoomID, SectionID, StartTime, EndTime) VALUES (?, ?, ?, ?, ?, ?, ?)";
+                        $stmtInsert = $conn->prepare($insertSql);
 
-                foreach ($days as $day) {
-                    $stmtInsert->execute([$facultyID, $curriculumID, $day, $roomID, $sectionID, $startTime, $endTime]);
-                }
+                        foreach ($days as $day) {
+                            $stmtInsert->execute([$facultyID, $curriculumID, $day, $roomID, $sectionID, $startTime, $endTime]);
+                        }
 
-                // Redirect to refresh
-                header("Location: dashboard?" . http_build_query($_GET));
-                exit();
-            } catch (PDOException $e) {
-                echo '<div id="alert-message" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+                        // Redirect to refresh
+                        header("Location: dashboard?" . http_build_query($_GET));
+                        exit();
+                    } catch (PDOException $e) {
+                        echo '<div id="alert-message" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
                         Error adding schedule.
                       </div>
                       <script>
@@ -190,10 +146,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             }
                         }, 5000);
                       </script>';
-            }
-        }
-    } else {
-        echo '<div id="alert-message" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+                    }
+                }
+            } else {
+                echo '<div id="alert-message" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
                 Please fill in all required fields.
               </div>
               <script>
@@ -204,8 +160,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                 }, 5000);
               </script>';
-    }
-    break;
+            }
+            break;
 
         case 'editSchedule':
             // Validate and sanitize input
@@ -215,12 +171,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $sectionID = isset($_POST['editSectionID']) ? intval($_POST['editSectionID']) : 0;
             $startTime = isset($_POST['editStartTime']) ? trim($_POST['editStartTime']) : '';
             $endTime = isset($_POST['editEndTime']) ? trim($_POST['editEndTime']) : '';
+            $facultyID = isset($_POST['editFacultyName']) ? trim($_POST['editFacultyName']) : '';
 
             if ($scheduleID > 0 && !empty($day) && $roomID > 0 && $sectionID > 0 && !empty($startTime) && !empty($endTime)) {
                 // Convert day string to array for conflict check
                 $daysArray = [$day];
                 // Check for schedule conflict excluding current scheduleID
-                $conflict = checkScheduleConflict($roomID, $daysArray, $startTime, $endTime, $scheduleID);
+                $conflict = isScheduleConflicting($roomID, $daysArray, $startTime, $endTime, $facultyID, $scheduleID);
                 if ($conflict) {
                     echo '<div id="alert-message" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">Schedule conflict detected. Please choose a different time or room.</div>
                     <script>

@@ -1,4 +1,4 @@
-<div id="editScheduleModal" tabindex="-1" aria-hidden="true"
+<div id="editScheduleModal" tabindex="-1" aria-hidden="true" data-modal-target="editScheduleModal"
     class="opacity-0 pointer-events-none overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full transition-opacity duration-300 ease-in-out">
     <!-- Backdrop -->
     <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity duration-300 ease-in-out"></div>

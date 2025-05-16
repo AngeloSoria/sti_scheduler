@@ -1,105 +1,7 @@
 <?php
 
 require_once __DIR__ . '/functions/func_schedules.php';
-
-?>
-
-<style>
-    /* Print styles */
-    @media print {
-
-        /* Hide sidebar, header, and footer */
-        #sidebar,
-        header,
-        footer,
-        #addNewBtn,
-        #printBtn,
-        form#filterForm,
-        .inline-flex[role="group"] {
-            display: none !important;
-        }
-
-        /* Hide the existing h1 title */
-        h1.text-lg {
-            display: none !important;
-        }
-
-        /* Show print header */
-        .print-header {
-            display: block !important;
-            margin-bottom: 1rem;
-            font-family: Arial, sans-serif;
-            text-align: center;
-            
-        }
-        
-        body {
-            background: transparent !important;
-        }
-
-        /* Make the schedules section take full width with margin and white background */
-        section {
-            box-shadow: none !important;
-            border-radius: 0 !important;
-            background: transparent !important;
-            padding: 1rem !important;
-            margin: 1rem !important;
-        }
-
-        /* Table adjustments for print */
-        table {
-            width: 100% !important;
-            border-collapse: collapse !important;
-            font-size: 10pt !important;
-            margin-top: 0.5rem;
-            background: transparent !important;
-        }
-
-        th,
-        td {
-            border: 1px solid #000 !important;
-            padding: 4px 6px !important;
-            color: #000 !important;
-            text-align: left !important;
-        }
-
-        /* Remove hover and focus styles */
-        tr:hover,
-        tr:focus {
-            background: none !important;
-        }
-
-        /* Hide action buttons column */
-        th:last-child,
-        td:last-child {
-            display: none !important;
-        }
-
-        #rowCountTools {
-            display: none !important;
-        }
-    }
-
-    /* Hide print header by default */
-    .print-header {
-        display: none;
-    }
-</style>
-
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const printBtn = document.getElementById('printBtn');
-        if (printBtn) {
-            printBtn.addEventListener('click', function () {
-                window.print();
-            });
-        }
-    });
-</script>
-
-<?php
 // Prepare filter display text for print header
-
 // Find faculty full name by ID
 $facultyName = '';
 if (!empty($facultyFilter)) {
@@ -136,6 +38,109 @@ if (!empty($search)) {
     $filterTexts[] = 'Search: ' . htmlspecialchars($search);
 }
 ?>
+
+<style>
+    /* Print styles */
+    @media print {
+
+        /* Hide sidebar, header, and footer */
+        #sidebar,
+        header,
+        footer,
+        #addNewBtn,
+        #printBtn,
+        form#filterForm,
+        .inline-flex[role="group"] {
+            display: none !important;
+        }
+
+        /* Hide the existing h1 title */
+        h1.text-lg {
+            display: none !important;
+        }
+
+        /* Show print header */
+        .print-header {
+            display: block !important;
+            margin-bottom: 1rem;
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+
+        body {
+            background: transparent !important;
+        }
+
+        /* Make the schedules section take full width with margin and white background */
+        section {
+            box-shadow: none !important;
+            border-radius: 0 !important;
+            background: transparent !important;
+            padding: 0.5rem !important;
+            margin: 0.5rem !important;
+        }
+
+        /* Table adjustments for print */
+        table {
+            width: 100% !important;
+            border-collapse: collapse !important;
+            font-size: 10pt !important;
+            margin-top: 0.5rem;
+            background: transparent !important;
+            margin: auto !important;
+        }
+
+        th,
+        td {
+            border: 1px solid #000 !important;
+            padding: 4px 6px !important;
+            color: #000 !important;
+            text-align: left !important;
+        }
+
+        th {
+            text-align: center !important;
+        }
+
+        /* Remove hover and focus styles */
+        tr:hover,
+        tr:focus {
+            background: none !important;
+        }
+
+        /* Hide action buttons column */
+        th:last-child,
+        td:last-child {
+            display: none !important;
+        }
+
+        th:first-child,
+        td:first-child {
+            text-align: center !important;
+            display: none !important;
+        }
+
+        #rowCountTools {
+            display: none !important;
+        }
+    }
+
+    /* Hide print header by default */
+    .print-header {
+        display: none;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const printBtn = document.getElementById('printBtn');
+        if (printBtn) {
+            printBtn.addEventListener('click', function () {
+                window.print();
+            });
+        }
+    });
+</script>
 
 <div class="print-header">
     <h2 style="margin-bottom: 0.5rem; font-weight: bold; font-size: 18pt;">Schedules Report</h2>
@@ -304,7 +309,8 @@ if (!empty($search)) {
         </table>
     </div>
 
-    <div id="rowCountTools" class="flex flex-col md:flex-row md:items-center md:justify-between mt-4 space-y-2 md:space-y-0">
+    <div id="rowCountTools"
+        class="flex flex-col md:flex-row md:items-center md:justify-between mt-4 space-y-2 md:space-y-0">
         <div class="text-sm text-gray-700 flex items-center space-x-2">
             <span>
                 Showing <?php echo ($offset + 1); ?> to <?php echo min($offset + $rowsPerPage, $totalRows); ?> of

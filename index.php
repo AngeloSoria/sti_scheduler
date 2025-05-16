@@ -8,7 +8,6 @@ error_reporting(E_ALL);
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
 $dotenv->load();
 
@@ -16,8 +15,6 @@ require_once __DIR__ . '/config/router.php';
 require __DIR__ . '/config/dbConnection.php';
 
 $conn = new Database();
-
-// $conn = $conn->getConnection();
 
 $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
