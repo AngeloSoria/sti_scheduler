@@ -142,6 +142,56 @@ if (!empty($search)) {
     });
 </script>
 
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const exportCSVBtn = document.getElementById('exportCSVBtn');
+    if (exportCSVBtn) {
+        exportCSVBtn.addEventListener('click', function () {
+            const table = document.querySelector('table.min-w-full');
+            if (!table) return;
+
+            let csvContent = '';
+            const rows = table.querySelectorAll('thead tr, tbody tr');
+
+            rows.forEach(row => {
+                // Only include visible rows
+                if (row.offsetParent === null) return;
+
+                const cols = row.querySelectorAll('th, td');
+                let rowData = [];
+                // Exclude the last column (Actions)
+                const colsToProcess = Array.from(cols).slice(0, -1);
+                colsToProcess.forEach(col => {
+                    // Only include visible columns
+                    if (col.offsetParent === null) return;
+                    // Escape double quotes by doubling them
+                    let cellText = col.textContent.trim().replace(/"/g, '""');
+                    // Wrap cell text in double quotes
+                    rowData.push(`"${cellText}"`);
+                });
+                csvContent += rowData.join(',') + '\r\n';
+            });
+
+            // Create a Blob with CSV data and trigger download
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            // Add current date to filename in year-month-day format
+            const date = new Date();
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            a.download = `schedules_export_${year}-${month}-${day}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
+    }
+});
+</script>
+
 <div class="print-header">
     <h2 style="margin-bottom: 0.5rem; font-weight: bold; font-size: 18pt;">Schedules Report</h2>
     <?php if (!empty($filterTexts)): ?>
@@ -175,6 +225,16 @@ if (!empty($search)) {
                         d="M6 9V2h12v7M6 18h12v4H6v-4zm0-3h12v1H6v-1z" />
                 </svg>
                 Print
+            </button>
+            <button type="button" id="exportCSVBtn"
+                class="flex items-center justify-center px-3 sm:px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 w-full sm:w-auto">
+                <svg class="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" fill="none" stroke="currentColor" stroke-width="2"
+                    viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                Export CSV
             </button>
         </div>
     </div>
