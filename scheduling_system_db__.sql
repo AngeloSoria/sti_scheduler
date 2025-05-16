@@ -2,13 +2,12 @@
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
--- Host: 127.0.0.1:3306
--- Generation Time: May 16, 2025 at 07:06 AM
--- Server version: 10.11.10-MariaDB
--- PHP Version: 7.2.34
+-- Host: 127.0.0.1
+-- Generation Time: May 16, 2025 at 05:43 PM
+-- Server version: 10.4.32-MariaDB
+-- PHP Version: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
-SET FOREIGN_KEY_CHECK = 1;
 START TRANSACTION;
 SET time_zone = "+00:00";
 
@@ -19,7 +18,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `u661545712_schedflow_db`
+-- Database: `scheduling_system_db`
 --
 
 -- --------------------------------------------------------
@@ -310,27 +309,12 @@ CREATE TABLE `schedules` (
 --
 
 INSERT INTO `schedules` (`ScheduleID`, `CurriculumID`, `FacultyID`, `Day`, `StartTime`, `EndTime`, `RoomID`, `SectionID`) VALUES
-(47, 789, 8, 'Monday', '09:00:00', '10:00:00', 3, 3),
-(48, 789, 8, 'Wednesday', '09:00:00', '10:00:00', 3, 3),
-(55, 871, 11, 'Tuesday', '17:00:00', '19:03:00', 2, 3),
-(56, 871, 11, 'Thursday', '17:00:00', '19:03:00', 2, 3),
-(57, 862, 24, 'Monday', '16:00:00', '17:00:00', 2, 1),
-(58, 862, 24, 'Tuesday', '16:00:00', '17:00:00', 2, 1),
-(59, 789, 8, 'Monday', '07:00:00', '08:00:00', 4, 1),
-(60, 789, 8, 'Tuesday', '07:00:00', '08:00:00', 4, 1),
-(61, 789, 8, 'Wednesday', '07:00:00', '08:00:00', 4, 1),
-(62, 789, 8, 'Thursday', '07:00:00', '08:00:00', 4, 1),
-(63, 789, 8, 'Friday', '07:00:00', '08:00:00', 4, 1),
-(64, 789, 8, 'Saturday', '07:00:00', '08:00:00', 4, 1),
-(65, 789, 8, 'Monday', '07:00:00', '08:00:00', 2, 3),
-(66, 789, 8, 'Tuesday', '07:00:00', '08:00:00', 2, 3),
-(67, 789, 8, 'Wednesday', '07:00:00', '08:00:00', 2, 3),
-(68, 789, 8, 'Thursday', '07:00:00', '08:00:00', 2, 3),
-(69, 789, 8, 'Friday', '07:00:00', '08:00:00', 2, 3),
-(70, 789, 8, 'Saturday', '07:00:00', '08:00:00', 2, 3),
-(71, 773, 25, 'Monday', '07:00:00', '08:00:00', 1, 6),
-(72, 773, 25, 'Wednesday', '07:00:00', '08:00:00', 1, 6),
-(73, 773, 25, 'Friday', '07:00:00', '08:00:00', 1, 6);
+(76, 789, 8, 'Monday', '10:30:00', '12:30:00', 2, 1),
+(77, 789, 8, 'Tuesday', '10:30:00', '12:30:00', 2, 1),
+(78, 789, 8, 'Wednesday', '10:30:00', '12:30:00', 2, 1),
+(79, 789, 8, 'Thursday', '10:30:00', '12:30:00', 2, 1),
+(80, 789, 8, 'Friday', '10:30:00', '12:30:00', 2, 1),
+(81, 789, 8, 'Saturday', '10:30:00', '12:30:00', 2, 1);
 
 -- --------------------------------------------------------
 
@@ -374,16 +358,12 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`UserID`, `Username`, `Password`, `FirstName`, `MiddleName`, `LastName`, `Role`, `ProfilePic`) VALUES
-(9, 'Szchiro', NULL);
-INSERT INTO `users` (`UserID`, `Username`, `Password`, `FirstName`, `MiddleName`, `LastName`, `Role`, `ProfilePic`) VALUES
 (11, 'adminHQ', '$2y$10$/eLBGpL9XIkHVdw7vA9sCewTqHOMX/pDS3IazeIdrrAsrx/cyncYC', 'Via', '', 'De Ocampo', 'admin', NULL),
 (13, 'juan09', '$2y$10$mCDDngCuXhNLO1HMwCECouh61598swvo.DdV4ajZXj5uQ.JFzK5su', 'Juan', '', 'Dela Cruz', 'faculty', NULL),
 (17, 'Via', '$2y$10$4p75wqPAbvZWfaGxn1QXgeHr6t1XuU4W0wugkULMt1vMZ/7jPKcWW', 'Viaa', 'D', 'De Ocampo', 'faculty', NULL),
 (34, 'AASASAAS', '$2y$10$hY9LGJ3qF5oV7iVCcY3NquSIKSYxOYEkYf8FIiHMaXP8QM7nsm7nK', 'ASDASD', 'ASDSA', 'DASDASD', 'admin', NULL),
-(35, 'gelo', '$2y$10$gMX0KPKGXFKLk3JZaXDi0.0qwf/iw0YqthAouaxfKeTqaa.TCgqQa', 'Angelo', '', 'Michellin', 'admin', NULL);
-INSERT INTO `users` (`UserID`, `Username`, `Password`, `FirstName`, `MiddleName`, `LastName`, `Role`, `ProfilePic`) VALUES
-(36, 'Kaizen', '$2y$10$aj5uIxwBzoKZJXwMBUOP/eBGspnVUKYkOPwDgwixmhYXfWIHOfupW', 'Vin', '', 'Szchiro', 'faculty', NULL);
-INSERT INTO `users` (`UserID`, `Username`, `Password`, `FirstName`, `MiddleName`, `LastName`, `Role`, `ProfilePic`) VALUES
+(35, 'gelo', '$2y$10$gMX0KPKGXFKLk3JZaXDi0.0qwf/iw0YqthAouaxfKeTqaa.TCgqQa', 'Angelo', '', 'Michellin', 'admin', 'src/uploads/profile_pic/682739bea3c67.jpg'),
+(36, 'Kaizen', '$2y$10$aj5uIxwBzoKZJXwMBUOP/eBGspnVUKYkOPwDgwixmhYXfWIHOfupW', 'Vin', '', 'Szchiro', 'faculty', NULL),
 (37, 'Vach', '$2y$10$Iz9jTX4t8YwglDVSNXI1x.z7hLZPMuXj0IxkY1mSG29Rygi.F3Hny', 'Vach', '', 'Neriz', 'faculty', NULL);
 
 --
@@ -498,7 +478,7 @@ ALTER TABLE `rooms`
 -- AUTO_INCREMENT for table `schedules`
 --
 ALTER TABLE `schedules`
-  MODIFY `ScheduleID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=74;
+  MODIFY `ScheduleID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=82;
 
 --
 -- AUTO_INCREMENT for table `sections`
