@@ -52,19 +52,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['updateProfile'])) {
             header("Location: " . $_SERVER['REQUEST_URI']);
             exit();
         } else {
-            // Handle profile picture upload
-            $profilePicData = null;
+            require_once __DIR__ . '/../functions/FileUploader.php';
+
+            $fileUploader = new FileUploader('src/uploads/profile_pic/');
+
+            $profilePicPath = null;
             if (isset($_FILES['profilePic']) && $_FILES['profilePic']['error'] === UPLOAD_ERR_OK) {
-                $fileTmpPath = $_FILES['profilePic']['tmp_name'];
-                $fileData = file_get_contents($fileTmpPath);
-                $profilePicData = $fileData;
+                $uploadResult = $fileUploader->uploadProfilePic($_FILES['profilePic'], $userId);
+                if (isset($uploadResult['error'])) {
+                    $error = $uploadResult['error'];
+                    $editMode = true;
+                } else {
+                    $profilePicPath = $uploadResult['file_path'];
+                }
             }
 
-            // Update user data
             try {
-                if ($profilePicData !== null) {
+                if ($profilePicPath !== null) {
                     $stmtUpdate = $conn->prepare("UPDATE users SET FirstName = :firstName, MiddleName = :middleName, LastName = :lastName, Username = :username, ProfilePic = :profilePic WHERE UserID = :userId");
-                    $stmtUpdate->bindParam(':profilePic', $profilePicData, PDO::PARAM_LOB);
+                    $stmtUpdate->bindParam(':profilePic', $profilePicPath);
                 } else {
                     $stmtUpdate = $conn->prepare("UPDATE users SET FirstName = :firstName, MiddleName = :middleName, LastName = :lastName, Username = :username WHERE UserID = :userId");
                 }
@@ -226,8 +232,8 @@ function getFullName($user)
             <div class="relative z-10" style="margin-top: -60px;">
                 <div class="profile-pic-container mx-auto md:mx-0 relative" title="Change Photo">
                     <?php if (!empty($user['ProfilePic'])): ?>
-                        <img id="profilePicDisplay" src="data:image/jpeg;base64,<?= base64_encode($user['ProfilePic']) ?>"
-                            alt="Profile Picture" class="object-cover w-full h-full rounded-full" />
+                        <img id="profilePicDisplay" src="<?= htmlspecialchars($user['ProfilePic']) ?>" alt="Profile Picture"
+                            class="object-cover w-full h-full rounded-full" />
                     <?php else: ?>
                         <div id="profilePicDisplay"
                             class="flex items-center justify-center w-full h-full bg-gray-200 text-gray-500 text-6xl font-bold rounded-full">

@@ -1,5 +1,6 @@
 <?php
 
+
 $isLoggedIn = isset($_SESSION['user']);
 
 if ($isLoggedIn) {
@@ -10,7 +11,12 @@ if ($isLoggedIn) {
             exit();
         }
     }
+
+    require_once __DIR__ . '../../functions/GetProfileInfo.php';
+    $getProfileInfo = new GetProfileInfo($conn);
+    $userProfile = $getProfileInfo->getProfileInfo($_SESSION['user']['id']);
 }
+
 ?>
 
 <!-- Internal CSS for hover enhancement -->
@@ -62,12 +68,12 @@ if ($isLoggedIn) {
 </style>
 
 <header class="bg-white text-gray-800 shadow-md z-20 border-b border-gray-200">
-    <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+    <div class="max-w-7xl mx-auto px-4 py-2 flex justify-between items-center">
 
         <!-- Left: Logo and Title -->
         <a href="<?php echo $isLoggedIn ? '/dashboard' : '/'; ?>" class="flex items-center space-x-2">
-            <img src="/assets/img/STI_LOGO_for_eLMS.png" alt="STI Logo" class="w-auto h-14">
-            <span class="text-xl font-bold text-blue-900">Schedflow</span>
+            <img src="/assets/img/STI_LOGO_for_eLMS.png" alt="STI Logo" class="w-auto h-10">
+            <span class="text-lg font-bold text-blue-900">Schedflow</span>
         </a>
 
         <!-- Right: Navigation or Profile -->
@@ -99,7 +105,7 @@ if ($isLoggedIn) {
         <?php else: ?>
             <div class="relative group">
                 <button class="flex items-center space-x-2 focus:outline-none">
-                    <img src="<?php echo !empty($_SESSION['user']['profilepic']) ? $_SESSION['user']['profilepic'] : '/assets/img/default-profile.png'; ?>"
+                    <img src="<?php echo !empty($userProfile['ProfilePic']) ? $userProfile['ProfilePic'] : '/assets/img/default-profile.png'; ?>"
                         alt="Profile" class="w-9 h-9 rounded-full border-2 border-blue-500">
                     <span class="hidden sm:inline font-medium text-sm">
                         <?php echo htmlspecialchars($_SESSION['user']['username']); ?>
