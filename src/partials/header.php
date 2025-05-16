@@ -79,7 +79,7 @@ if ($isLoggedIn) {
                     class="button-style bg-yellow-400 hover:bg-yellow-300 text-black">
                     Login
                 </button>
-                <?php if (isset($_ENV['DEVELOPMENT_MODE']) && $_ENV['DEVELOPMENT_MODE'] == 'true'): ?>
+                <?php if (isset($_ENV['SHOW_DEV_TOOLS']) && $_ENV['SHOW_DEV_TOOLS'] == 'true'): ?>
                     <button onclick="document.getElementById('registerModal').classList.remove('hidden')" class="button-style bg-yellow-400 hover:bg-yellow-300 text-black">
                         Register
                     </button>
@@ -124,7 +124,7 @@ if ($isLoggedIn) {
         <?php endif; ?>
     </div>
 
-    <?php if (isset($_ENV['DEVELOPMENT_MODE']) && $_ENV['DEVELOPMENT_MODE'] == 'true'): ?>
+    <?php if (isset($_ENV['SHOW_DEV_TOOLS']) && $_ENV['SHOW_DEV_TOOLS'] == 'true'): ?>
         <?php include_once __DIR__ . '/modals/modal_register.php'; ?>
     <?php endif; ?>
 
@@ -134,7 +134,7 @@ if ($isLoggedIn) {
             <a href="/about" class="button-mobile-style bg-white hover:bg-gray-200 text-black">About</a>
             <button onclick="document.getElementById('loginModal').classList.remove('hidden')"
                 class="button-mobile-style bg-yellow-400 text-black hover:bg-yellow-300">Login</button>
-            <?php if (isset($_ENV['DEVELOPMENT_MODE']) && $_ENV['DEVELOPMENT_MODE'] == 'true'): ?>
+            <?php if (isset($_ENV['SHOW_DEV_TOOLS']) && $_ENV['SHOW_DEV_TOOLS'] == 'true'): ?>
                 <button onclick="document.getElementById('registerModal').classList.remove('hidden')"
                     class="button-mobile-style bg-yellow-400 text-black hover:bg-yellow-300">Register</button>
             <?php endif; ?>
