@@ -7,7 +7,7 @@ include __DIR__ . '../../partials/modals/modal_login.php';
     <div class="flex justify-between items-center px-4 md:px-20">
         <!-- Left Section -->
         <div class="text-sm">
-            <p>&copy; <?php echo date("Y"); ?> Schedflow. All rights reserved.</p>
+            <p>&copy; <?php echo date("Y"); ?> Sched-flow. All rights reserved.</p>
         </div>
 
         <!-- Right Section (Social Media Links) -->

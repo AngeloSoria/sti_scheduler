@@ -18,7 +18,7 @@ require_once __DIR__ . '../../auth/login.php';
             <div class="flex flex-col items-center justify-center h-full">
                 <section class="bg-white py-12 text-center px-6 shadow-md rounded-lg">
                     <h1 class="text-4xl mb-4 font-bold text-lapis-lazuli-3">About Us</h1>
-                    <p class="text-gray-600">STI Scheduler is a web-based application designed to streamline the
+                    <p class="text-gray-600">Sched-flow is a web-based application designed to streamline the
                         scheduling process for educational institutions.</p>
                     <p class="text-gray-600">Our goal is to provide a user-friendly platform that simplifies the
                         management of academic programs, subjects, and faculty schedules.</p>
