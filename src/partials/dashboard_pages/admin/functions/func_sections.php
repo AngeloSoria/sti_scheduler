@@ -11,32 +11,43 @@ $addErrors = [];
 // Handle Manual Add
 if (isset($_POST['btnAdd'])) {
     $addSectionName = trim($_POST['addSectionName']);
+    $addProgramID = isset($_POST['addProgramID']) ? trim($_POST['addProgramID']) : '';
 
-    // Check if section already exists
-    $stmtCheck = $conn->prepare("SELECT SectionID FROM sections WHERE SectionName = ?");
-    $stmtCheck->execute([$addSectionName]);
-    if ($stmtCheck->fetch()) {
+    // Prevent empty or whitespace-only section names or missing program
+    if ($addSectionName === '' || $addProgramID === '') {
         $addSuccess = false;
-        $addErrors[] = "Section '" . htmlspecialchars($addSectionName) . "' already exists.";
+        $addErrors[] = "Section name and program are required.";
         echo '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert" id="message">
-                    <strong class="font-bold">Error!</strong>
-                    <span class="block sm:inline">Failed to add section. Section "' . htmlspecialchars($addSectionName) . '" already exists.</span>
-                </div>';
+                <strong class="font-bold">Error!</strong>
+                <span class="block sm:inline">Section name and program are required.</span>
+            </div>';
     } else {
-        $stmtInsert = $conn->prepare("INSERT INTO sections (SectionName) VALUES (?)");
-        if ($stmtInsert->execute([$addSectionName])) {
-            $addSuccess = true;
-            echo '<div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert" id="message">
-                        <strong class="font-bold">Success!</strong>
-                        <span class="block sm:inline">Section "' . htmlspecialchars($addSectionName) . '" added successfully!</span>
-                    </div>';
-        } else {
+        // Check if section already exists for the same program
+        $stmtCheck = $conn->prepare("SELECT SectionID FROM sections WHERE SectionName = ? AND ProgramID = ?");
+        $stmtCheck->execute([$addSectionName, $addProgramID]);
+        if ($stmtCheck->fetch()) {
             $addSuccess = false;
-            $addErrors[] = "Error adding section '" . htmlspecialchars($addSectionName) . "'.";
+            $addErrors[] = "Section '" . htmlspecialchars($addSectionName) . "' already exists for this program.";
             echo '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert" id="message">
                         <strong class="font-bold">Error!</strong>
-                        <span class="block sm:inline">Failed to add section. Please try again.</span>
+                        <span class="block sm:inline">Failed to add section. Section "' . htmlspecialchars($addSectionName) . '" already exists for this program.</span>
                     </div>';
+        } else {
+            $stmtInsert = $conn->prepare("INSERT INTO sections (SectionName, ProgramID) VALUES (?, ?)");
+            if ($stmtInsert->execute([$addSectionName, $addProgramID])) {
+                $addSuccess = true;
+                echo '<div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert" id="message">
+                            <strong class="font-bold">Success!</strong>
+                            <span class="block sm:inline">Section "' . htmlspecialchars($addSectionName) . '" added successfully!</span>
+                        </div>';
+            } else {
+                $addSuccess = false;
+                $addErrors[] = "Error adding section '" . htmlspecialchars($addSectionName) . "'.";
+                echo '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert" id="message">
+                            <strong class="font-bold">Error!</strong>
+                            <span class="block sm:inline">Failed to add section. Please try again.</span>
+                        </div>';
+            }
         }
     }
 }
@@ -45,27 +56,36 @@ if (isset($_POST['btnAdd'])) {
 if (isset($_POST['btnEdit'])) {
     $editSectionID = trim($_POST['editSectionID']);
     $editSectionName = trim($_POST['editSectionName']);
+    $editProgramID = isset($_POST['editProgramID']) ? trim($_POST['editProgramID']) : '';
 
-    // Check if section name already exists for another ID
-    $stmtCheck = $conn->prepare("SELECT SectionID FROM sections WHERE SectionName = ? AND SectionID != ?");
-    $stmtCheck->execute([$editSectionName, $editSectionID]);
-    if ($stmtCheck->fetch()) {
+    // Check for empty fields
+    if ($editSectionName === '' || $editProgramID === '') {
         echo '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert" id="message">
                 <strong class="font-bold">Error!</strong>
-                <span class="block sm:inline">Section name "' . htmlspecialchars($editSectionName) . '" already exists.</span>
+                <span class="block sm:inline">Section name and program are required.</span>
             </div>';
     } else {
-        $stmtUpdate = $conn->prepare("UPDATE sections SET SectionName = ? WHERE SectionID = ?");
-        if ($stmtUpdate->execute([$editSectionName, $editSectionID])) {
-            echo '<div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert" id="message">
-                    <strong class="font-bold">Success!</strong>
-                    <span class="block sm:inline">Section updated successfully!</span>
-                </div>';
-        } else {
+        // Check if section name already exists for another ID and same program
+        $stmtCheck = $conn->prepare("SELECT SectionID FROM sections WHERE SectionName = ? AND ProgramID = ? AND SectionID != ?");
+        $stmtCheck->execute([$editSectionName, $editProgramID, $editSectionID]);
+        if ($stmtCheck->fetch()) {
             echo '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert" id="message">
                     <strong class="font-bold">Error!</strong>
-                    <span class="block sm:inline">Failed to update section. Please try again.</span>
+                    <span class="block sm:inline">Section name "' . htmlspecialchars($editSectionName) . '" already exists for this program.</span>
                 </div>';
+        } else {
+            $stmtUpdate = $conn->prepare("UPDATE sections SET SectionName = ?, ProgramID = ? WHERE SectionID = ?");
+            if ($stmtUpdate->execute([$editSectionName, $editProgramID, $editSectionID])) {
+                echo '<div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert" id="message">
+                        <strong class="font-bold">Success!</strong>
+                        <span class="block sm:inline">Section updated successfully!</span>
+                    </div>';
+            } else {
+                echo '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert" id="message">
+                        <strong class="font-bold">Error!</strong>
+                        <span class="block sm:inline">Failed to update section. Please try again.</span>
+                    </div>';
+            }
         }
     }
 }
@@ -109,7 +129,12 @@ if (!empty($search)) {
 $whereString = !empty($whereClauses) ? "WHERE " . implode(" AND ", $whereClauses) : "";
 
 try {
-    $sql = "SELECT SectionID, SectionName FROM sections $whereString ORDER BY SectionID ASC LIMIT ? OFFSET ?";
+    $sql = "SELECT s.SectionID, s.SectionName, s.ProgramID, p.ProgramName
+            FROM sections s
+            LEFT JOIN programs p ON s.ProgramID = p.ProgramID
+            $whereString
+            ORDER BY s.SectionID ASC
+            LIMIT ? OFFSET ?";
     $stmt = $conn->prepare($sql);
 
     $paramIndex = 1;

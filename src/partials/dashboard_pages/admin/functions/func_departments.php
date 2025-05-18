@@ -12,31 +12,41 @@ $addErrors = [];
 if (isset($_POST['btnAdd'])) {
     $addDepartmentName = trim($_POST['addDepartmentName']);
 
-    // Check if department already exists
-    $stmtCheck = $conn->prepare("SELECT DepartmentID FROM departments WHERE DepartmentName = ?");
-    $stmtCheck->execute([$addDepartmentName]);
-    if ($stmtCheck->fetch()) {
+    // Prevent empty department name
+    if (empty($addDepartmentName)) {
         $addSuccess = false;
-        $addErrors[] = "Department '" . htmlspecialchars($addDepartmentName) . "' already exists.";
+        $addErrors[] = "Department name cannot be empty.";
         echo '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert" id="message">
-                    <strong class="font-bold">Error!</strong>
-                    <span class="block sm:inline">Failed to add department. Department "' . htmlspecialchars($addDepartmentName) . '" already exists.</span>
-                </div>';
+                <strong class="font-bold">Error!</strong>
+                <span class="block sm:inline">Department name cannot be empty.</span>
+              </div>';
     } else {
-        $stmtInsert = $conn->prepare("INSERT INTO departments (DepartmentName) VALUES (?)");
-        if ($stmtInsert->execute([$addDepartmentName])) {
-            $addSuccess = true;
-            echo '<div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert" id="message">
-                        <strong class="font-bold">Success!</strong>
-                        <span class="block sm:inline">Department "' . htmlspecialchars($addDepartmentName) . '" added successfully!</span>
-                    </div>';
-        } else {
+        // Check if department already exists
+        $stmtCheck = $conn->prepare("SELECT DepartmentID FROM departments WHERE DepartmentName = ?");
+        $stmtCheck->execute([$addDepartmentName]);
+        if ($stmtCheck->fetch()) {
             $addSuccess = false;
-            $addErrors[] = "Error adding department '" . htmlspecialchars($addDepartmentName) . "'.";
+            $addErrors[] = "Department '" . htmlspecialchars($addDepartmentName) . "' already exists.";
             echo '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert" id="message">
                         <strong class="font-bold">Error!</strong>
-                        <span class="block sm:inline">Failed to add department. Please try again.</span>
+                        <span class="block sm:inline">Failed to add department. Department "' . htmlspecialchars($addDepartmentName) . '" already exists.</span>
                     </div>';
+        } else {
+            $stmtInsert = $conn->prepare("INSERT INTO departments (DepartmentName) VALUES (?)");
+            if ($stmtInsert->execute([$addDepartmentName])) {
+                $addSuccess = true;
+                echo '<div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert" id="message">
+                            <strong class="font-bold">Success!</strong>
+                            <span class="block sm:inline">Department "' . htmlspecialchars($addDepartmentName) . '" added successfully!</span>
+                        </div>';
+            } else {
+                $addSuccess = false;
+                $addErrors[] = "Error adding department '" . htmlspecialchars($addDepartmentName) . "'.";
+                echo '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert" id="message">
+                            <strong class="font-bold">Error!</strong>
+                            <span class="block sm:inline">Failed to add department. Please try again.</span>
+                        </div>';
+            }
         }
     }
 }

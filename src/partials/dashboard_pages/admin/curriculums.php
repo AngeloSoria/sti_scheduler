@@ -210,7 +210,25 @@ require_once __DIR__ . '/functions/func_curriculums.php';
                 <input type="hidden" name="rowsPerPage" value="<?php echo $rowsPerPage; ?>">
                 <button type="submit" name="page" value="<?php echo max(1, $currentPage - 1); ?>"
                     class="px-3 py-1 border border-gray-300 bg-white text-gray-500 hover:bg-gray-100 rounded-l-md w-full md:w-auto mb-2 md:mb-0">Previous</button>
-                <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+                <?php
+                $maxPagesToShow = 5;
+                if ($totalPages <= $maxPagesToShow) {
+                    $startPage = 1;
+                    $endPage = $totalPages;
+                } else {
+                    $half = floor($maxPagesToShow / 2);
+                    if ($currentPage - $half <= 0) {
+                        $startPage = 1;
+                        $endPage = $maxPagesToShow;
+                    } elseif ($currentPage + $half > $totalPages) {
+                        $startPage = $totalPages - $maxPagesToShow + 1;
+                        $endPage = $totalPages;
+                    } else {
+                        $startPage = $currentPage - $half;
+                        $endPage = $currentPage + $half;
+                    }
+                }
+                for ($i = $startPage; $i <= $endPage; $i++): ?>
                     <button type="submit" name="page" value="<?php echo $i; ?>"
                         class="px-3 py-1 border-t border-b border-gray-300 bg-white text-gray-700 hover:bg-gray-100 w-full md:w-auto mb-2 md:mb-0 <?php echo ($i == $currentPage) ? 'font-bold' : ''; ?>">
                         <?php echo $i; ?>

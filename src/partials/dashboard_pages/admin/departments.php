@@ -130,28 +130,7 @@ require_once __DIR__ . '/functions/func_departments.php';
 </section>
 
 <!-- Add New Department Modal -->
-<div id="addNewDepartmentModal"
-    class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300">
-    <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6 relative">
-        <h2 class="text-xl font-semibold mb-4">Add New Department</h2>
-        <form id="addDepartmentForm" method="POST" action="src/partials/dashboard_pages/admin/functions/func_departments.php">
-            <div class="mb-4">
-                <label for="addDepartmentName" class="block text-gray-700 font-medium mb-2">Department Name</label>
-                <input type="text" id="addDepartmentName" name="addDepartmentName" required
-                    class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-            </div>
-            <div class="flex justify-end space-x-2">
-                <button type="button" data-modal-hide="addNewDepartmentModal"
-                    class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 focus:outline-none">Cancel</button>
-                <button type="submit" name="btnAdd"
-                    class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 focus:outline-none">Add</button>
-            </div>
-        </form>
-        <button type="button" data-modal-hide="addNewDepartmentModal"
-            class="absolute top-2 right-2 text-gray-600 hover:text-gray-800 focus:outline-none"
-            aria-label="Close">&times;</button>
-    </div>
-</div>
+<?php include_once __DIR__ . '../../../modals/admin/add_new_department_modal.php'; ?>
 
 <!-- Edit Department Modal -->
 <div id="editDepartmentModal"

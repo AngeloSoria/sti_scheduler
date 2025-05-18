@@ -16,7 +16,6 @@ if (isset($_GET['action']) && $_GET['action'] === 'getCurriculumSubjects' && iss
     exit;
 }
 
-// Register validation is moved to home.php
 $successMessage = isset($_SESSION['successMessage']) ? $_SESSION['successMessage'] : null;
 $errorMessage = isset($_SESSION['errorMessage']) ? $_SESSION['errorMessage'] : null;
 unset($_SESSION['successMessage'], $_SESSION['errorMessage']);
@@ -27,141 +26,168 @@ $programs = getPrograms();
 ?>
 
 <div id="registerModal" tabindex="-1" aria-hidden="true"
-    class="opacity-0 pointer-events-none fixed inset-0 z-50 flex items-center justify-center overflow-y-auto overflow-x-hidden bg-black bg-opacity-50 transition-opacity duration-300 ease-in-out">
-    <div class="relative w-full max-w-xl p-6 mx-auto bg-white rounded-lg shadow-lg max-h-[80vh] overflow-y-auto">
-        <div class="flex items-center justify-between mb-6">
-            <h2 class="text-2xl font-semibold text-gray-900">Register</h2>
-            <button type="button" aria-label="Close modal"
-                class="text-gray-400 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center"
-                onclick="closeRegisterModal()">
-                <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"
-                    xmlns="http://www.w3.org/2000/svg">
-                    <path fill-rule="evenodd"
-                        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                        clip-rule="evenodd"></path>
-                </svg>
-                <span class="sr-only">Close modal</span>
-            </button>
-        </div>
-        <?php if ($successMessage): ?>
-            <div class="mb-4 p-3 bg-green-200 text-green-800 rounded"><?= htmlspecialchars($successMessage) ?></div>
-        <?php elseif ($errorMessage): ?>
-            <div class="mb-4 p-3 bg-red-200 text-red-800 rounded"><?= htmlspecialchars($errorMessage) ?></div>
-        <?php endif; ?>
-        <form method="POST" action="src/partials/dashboard_pages/admin/functions/func_users.php" id="addUserForm"
-            enctype="multipart/form-data" class="space-y-6">
-            <input type="hidden" name="action" value="addUser">
-            <input type="hidden" name="type" value="<?php echo htmlspecialchars($_GET['type'] ?? ''); ?>">
-            <div class="flex gap-4">
-                <div class="w-1/2">
-                    <label for="addUsername" class="block mb-1 text-gray-700 font-semibold">Username</label>
-                    <input type="text" name="addUsername" id="addUsername"
-                        class="w-full border border-gray-300 p-3 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-300"
-                        placeholder="Username" required>
-                </div>
-                <div class="w-1/2">
-                    <label for="addPassword" class="block mb-1 text-gray-700 font-semibold">Password</label>
-                    <input type="password" name="addPassword" id="addPassword"
-                        class="w-full border border-gray-300 p-3 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-300"
-                        placeholder="Password" required>
-                </div>
+    class="opacity-0 pointer-events-none overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full transition-opacity duration-300 ease-in-out">
+    <!-- Backdrop -->
+    <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity duration-300 ease-in-out"></div>
+    <div class="relative p-6 w-full max-w-2xl max-h-full z-10">
+        <div class="relative bg-white rounded-lg shadow">
+            <div class="flex items-center justify-between p-4 border-b rounded-t">
+                <h3 class="text-2xl font-semibold text-gray-900">
+                    Register New User
+                </h3>
+                <button type="button"
+                    class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center"
+                    onclick="closeRegisterModal()">
+                    <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd"
+                            d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                            clip-rule="evenodd"></path>
+                    </svg>
+                    <span class="sr-only">Close modal</span>
+                </button>
             </div>
-            <div class="flex gap-4">
-                <div class="w-1/2">
-                    <label for="addConfirmPassword" class="block mb-1 text-gray-700 font-semibold">Confirm Password</label>
-                    <input type="password" name="addConfirmPassword" id="addConfirmPassword"
-                        class="w-full border border-gray-300 p-3 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-300"
-                        placeholder="Confirm Password" required>
-                    <span id="confirmPasswordError" class="text-red-500 text-sm hidden">Passwords do not match.</span>
-                </div>
-                <div class="w-1/2"></div>
-            </div>
-            <div class="flex gap-4">
-                <div class="w-1/3">
-                    <label for="addFirstName" class="block mb-1 text-gray-700 font-semibold">First Name <span
-                            class="text-red-500">*</span></label>
-                    <input type="text" name="addFirstName" id="addFirstName"
-                        class="w-full border border-gray-300 p-3 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-300"
-                        placeholder="First Name" required>
-                </div>
-                <div class="w-1/3">
-                    <label for="addMiddleName" class="block mb-1 text-gray-700 font-semibold">Middle Name</label>
-                    <input type="text" name="addMiddleName" id="addMiddleName"
-                        class="w-full border border-gray-300 p-3 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-300"
-                        placeholder="Middle Name (Optional)">
-                </div>
-                <div class="w-1/3">
-                    <label for="addLastName" class="block mb-1 text-gray-700 font-semibold">Last Name <span
-                            class="text-red-500">*</span></label>
-                    <input type="text" name="addLastName" id="addLastName"
-                        class="w-full border border-gray-300 p-3 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-300"
-                        placeholder="Last Name" required>
-                </div>
-            </div>
-            <div>
-                <label for="addRoleSelect" class="block mb-1 text-gray-700 font-semibold">Role</label>
-                <select id="addRoleSelect" name="addRoleSelect"
-                    class="w-full border border-gray-300 p-3 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-300"
-                    required <?php if (isset($_GET['type']) && in_array($_GET['type'], ['admin', 'faculty']))
-                        echo 'disabled'; ?>>
-                    <option value="admin" <?php if (isset($_GET['type']) && $_GET['type'] === 'admin')
-                        echo 'selected'; ?>>Admin</option>
-                    <option value="faculty" <?php if (isset($_GET['type']) && $_GET['type'] === 'faculty')
-                        echo 'selected'; ?>>Faculty</option>
-                </select>
-                <?php if (isset($_GET['type']) && in_array($_GET['type'], ['admin', 'faculty'])): ?>
-                    <input type="hidden" name="addRoleSelect" value="<?php echo htmlspecialchars($_GET['type']); ?>"
-                        id="hiddenAddRoleSelect">
-                <?php else: ?>
-                    <input type="hidden" name="addRoleSelect" id="hiddenAddRoleSelect" value="">
+            <div class="p-6 space-y-6">
+                <?php if ($successMessage): ?>
+                    <div class="mb-4 p-3 bg-green-200 text-green-800 rounded"><?= htmlspecialchars($successMessage) ?></div>
+                <?php elseif ($errorMessage): ?>
+                    <div class="mb-4 p-3 bg-red-200 text-red-800 rounded"><?= htmlspecialchars($errorMessage) ?></div>
                 <?php endif; ?>
+                <form method="POST" action="src/partials/dashboard_pages/admin/functions/func_users.php" id="addUserForm"
+                    enctype="multipart/form-data" class="space-y-4">
+                    <input type="hidden" name="action" value="addUser">
+                    <input type="hidden" name="type" value="<?php echo htmlspecialchars($_GET['type'] ?? ''); ?>">
+                    <div class="flex gap-4">
+                        <div class="w-1/2">
+                            <label for="addUsername" class="block text-gray-700 text-sm font-bold mb-2">
+                                Username: <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" name="addUsername" id="addUsername" required
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                placeholder="Username">
+                        </div>
+                        <div class="w-1/2">
+                            <label for="addPassword" class="block text-gray-700 text-sm font-bold mb-2">
+                                Password: <span class="text-red-500">*</span>
+                            </label>
+                            <input type="password" name="addPassword" id="addPassword" required
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                placeholder="Password">
+                        </div>
+                    </div>
+                    <div class="flex gap-4">
+                        <div class="w-1/2">
+                            <label for="addConfirmPassword" class="block text-gray-700 text-sm font-bold mb-2">
+                                Confirm Password: <span class="text-red-500">*</span>
+                            </label>
+                            <input type="password" name="addConfirmPassword" id="addConfirmPassword" required
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                placeholder="Confirm Password">
+                            <span id="confirmPasswordError" class="text-red-500 text-sm hidden">Passwords do not match.</span>
+                        </div>
+                        <div class="w-1/2"></div>
+                    </div>
+                    <div class="flex gap-4">
+                        <div class="w-1/3">
+                            <label for="addFirstName" class="block text-gray-700 text-sm font-bold mb-2">
+                                First Name: <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" name="addFirstName" id="addFirstName" required
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                placeholder="First Name">
+                        </div>
+                        <div class="w-1/3">
+                            <label for="addMiddleName" class="block text-gray-700 text-sm font-bold mb-2">
+                                Middle Name:
+                            </label>
+                            <input type="text" name="addMiddleName" id="addMiddleName"
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                placeholder="Middle Name (Optional)">
+                        </div>
+                        <div class="w-1/3">
+                            <label for="addLastName" class="block text-gray-700 text-sm font-bold mb-2">
+                                Last Name: <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" name="addLastName" id="addLastName" required
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                placeholder="Last Name">
+                        </div>
+                    </div>
+                    <div>
+                        <label for="addRoleSelect" class="block text-gray-700 text-sm font-bold mb-2">
+                            Role: <span class="text-red-500">*</span>
+                        </label>
+                        <select id="addRoleSelect" name="addRoleSelect"
+                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            required <?php if (isset($_GET['type']) && in_array($_GET['type'], ['admin', 'faculty'])) echo 'disabled'; ?>>
+                            <option value="admin" <?php if (isset($_GET['type']) && $_GET['type'] === 'admin') echo 'selected'; ?>>Admin</option>
+                            <option value="faculty" <?php if (isset($_GET['type']) && $_GET['type'] === 'faculty') echo 'selected'; ?>>Faculty</option>
+                        </select>
+                        <?php if (isset($_GET['type']) && in_array($_GET['type'], ['admin', 'faculty'])): ?>
+                            <input type="hidden" name="addRoleSelect" value="<?php echo htmlspecialchars($_GET['type']); ?>" id="hiddenAddRoleSelect">
+                        <?php else: ?>
+                            <input type="hidden" name="addRoleSelect" id="hiddenAddRoleSelect" value="">
+                        <?php endif; ?>
+                    </div>
+                    <div id="departmentDiv" class="hidden">
+                        <label for="addDepartment" class="block text-gray-700 text-sm font-bold mb-2">
+                            Department:
+                        </label>
+                        <select name="addDepartment" id="addDepartment"
+                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                            <option value="" disabled selected>Select Department</option>
+                            <?php foreach ($departments as $department): ?>
+                                <option value="<?= htmlspecialchars($department['DepartmentID']) ?>">
+                                    <?= htmlspecialchars($department['DepartmentName']) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div id="programDiv" class="hidden">
+                        <label for="addProgram" class="block text-gray-700 text-sm font-bold mb-2">
+                            Program:
+                        </label>
+                        <select name="addProgram" id="addProgram"
+                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                            <option value="" disabled selected>Select Program</option>
+                            <?php foreach ($programs as $program): ?>
+                                <option value="<?= htmlspecialchars($program['ProgramID']) ?>"
+                                    data-department="<?= htmlspecialchars($program['DepartmentID'] ?? '') ?>">
+                                    <?= htmlspecialchars($program['ProgramName']) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div id="preferredSubjectsDiv" class="hidden">
+                        <label for="addPreferredSubjects" class="block text-gray-700 text-sm font-bold mb-2">
+                            Preferred Subjects:
+                        </label>
+                        <select name="addPreferredSubjects[]" id="addPreferredSubjects" multiple size="6"
+                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                            <!-- Options will be populated dynamically -->
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="addProfilePic">
+                            Profile Picture (Optional):
+                        </label>
+                        <input type="file" name="addProfilePic" id="addProfilePic" accept="image/*"
+                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    </div>
+                    <div class="flex justify-end">
+                        <button type="button"
+                            class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-blue-300 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10"
+                            onclick="closeRegisterModal()">
+                            Cancel
+                        </button>
+                        <button type="submit"
+                            class="bg-indigo-500 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline ml-3">
+                            Register
+                        </button>
+                    </div>
+                </form>
             </div>
-            <div id="departmentDiv" class="hidden">
-                <label for="addDepartment" class="block mb-1 text-gray-700 font-semibold">Department</label>
-                <select name="addDepartment" id="addDepartment"
-                    class="w-full border border-gray-300 p-3 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-300">
-                    <option value="" disabled selected>Select Department</option>
-                    <?php foreach ($departments as $department): ?>
-                        <option value="<?= htmlspecialchars($department['DepartmentID']) ?>">
-                            <?= htmlspecialchars($department['DepartmentName']) ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            <div id="programDiv" class="hidden">
-                <label for="addProgram" class="block mb-1 text-gray-700 font-semibold">Program</label>
-                <select name="addProgram" id="addProgram"
-                    class="w-full border border-gray-300 p-3 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-300">
-                    <option value="" disabled selected>Select Program</option>
-                    <?php foreach ($programs as $program): ?>
-                        <option value="<?= htmlspecialchars($program['ProgramID']) ?>"
-                            data-department="<?= htmlspecialchars($program['DepartmentID'] ?? '') ?>">
-                            <?= htmlspecialchars($program['ProgramName']) ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            <div id="preferredSubjectsDiv" class="hidden mt-4">
-                <label for="addPreferredSubjects" class="block mb-1 text-gray-700 font-semibold">Preferred
-                    Subjects</label>
-                <select name="addPreferredSubjects[]" id="addPreferredSubjects" multiple size="6"
-                    class="w-full border border-gray-300 p-3 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-300">
-                    <!-- Options will be populated dynamically -->
-                </select>
-            </div>
-            <div>
-                <label class="block mb-1 text-gray-700 font-semibold" for="addProfilePic">Profile Picture
-                    (Optional)</label>
-                <input type="file" name="addProfilePic" id="addProfilePic" accept="image/*"
-                    class="w-full border border-gray-300 p-2 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-300">
-            </div>
-            <div class="flex gap-4">
-                <button type="submit"
-                    class="w-1/2 bg-lapis-lazuli text-white p-3 rounded-lg hover:bg-blue-800 transition duration-300 font-semibold shadow-md">Register</button>
-                <button type="button" data-modal-hide="registerModal"
-                    class="w-1/2 bg-gray-100 p-3 rounded-lg hover:bg-gray-200 transition duration-300">Cancel</button>
-            </div>
-        </form>
+        </div>
     </div>
 </div>
 

@@ -123,6 +123,10 @@ if (!empty($search)) {
         #rowCountTools {
             display: none !important;
         }
+
+        #exportCSVBtn {
+            display: none !important;
+        }
     }
 
     /* Hide print header by default */

@@ -42,12 +42,10 @@ require_once __DIR__ . '/functions/func_sections.php';
         <table class="min-w-full border border-gray-200 divide-y divide-gray-200">
             <thead class="bg-gray-50">
                 <tr>
-                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">#
-                    </th>
-                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Section
-                        Name</th>
-                    <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions
-                    </th>
+                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">#</th>
+                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Section Name</th>
+                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Program Name</th>
+                    <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
@@ -57,12 +55,13 @@ require_once __DIR__ . '/functions/func_sections.php';
                             <td class="px-4 py-2 whitespace-nowrap">
                                 <?php echo ($currentPage - 1) * $rowsPerPage + $index + 1; ?>
                             </td>
-                            <td class="px-4 py-2 whitespace-nowrap"><?php echo htmlspecialchars($section['SectionName']); ?>
-                            </td>
+                            <td class="px-4 py-2 whitespace-nowrap"><?php echo htmlspecialchars($section['SectionName']); ?></td>
+                            <td class="px-4 py-2 whitespace-nowrap"><?php echo htmlspecialchars($section['ProgramName']); ?></td>
                             <td class="px-4 py-2 whitespace-nowrap text-center space-x-2">
                                 <button class="text-blue-600 hover:text-blue-900 edit-btn" title="Edit"
                                     data-section-id="<?php echo $section['SectionID']; ?>"
                                     data-section-name="<?php echo htmlspecialchars($section['SectionName']); ?>"
+                                    data-program-id="<?php echo htmlspecialchars($section['ProgramID']); ?>"
                                     aria-label="Edit">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
                                         title="Edit" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -133,53 +132,11 @@ require_once __DIR__ . '/functions/func_sections.php';
 </section>
 
 <!-- Add New Section Modal -->
-<div id="addNewSectionModal"
-    class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300">
-    <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6 relative">
-        <h2 class="text-xl font-semibold mb-4">Add New Section</h2>
-        <form id="addSectionForm" method="POST" action="src/partials/dashboard_pages/admin/functions/func_sections.php">
-            <div class="mb-4">
-                <label for="addSectionName" class="block text-gray-700 font-medium mb-2">Section Name</label>
-                <input type="text" id="addSectionName" name="addSectionName" required
-                    class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-            </div>
-            <div class="flex justify-end space-x-2">
-                <button type="button" data-modal-hide="addNewSectionModal"
-                    class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 focus:outline-none">Cancel</button>
-                <button type="submit" name="addSection"
-                    class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 focus:outline-none">Add</button>
-            </div>
-        </form>
-        <button type="button" data-modal-hide="addNewSectionModal"
-            class="absolute top-2 right-2 text-gray-600 hover:text-gray-800 focus:outline-none"
-            aria-label="Close">&times;</button>
-    </div>
-</div>
+<?php include_once __DIR__ . '../../../modals/admin/add_new_section_modal.php'; ?>
 
 <!-- Edit Section Modal -->
-<div id="editSectionModal"
-    class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300">
-    <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6 relative">
-        <h2 class="text-xl font-semibold mb-4">Edit Section</h2>
-        <form id="editSectionForm" method="POST" action="src/partials/dashboard_pages/admin/functions/func_sections.php">
-            <input type="hidden" id="editSectionID" name="editSectionID">
-            <div class="mb-4">
-                <label for="editSectionName" class="block text-gray-700 font-medium mb-2">Section Name</label>
-                <input type="text" id="editSectionName" name="editSectionName" required
-                    class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-            </div>
-            <div class="flex justify-end space-x-2">
-                <button type="button" data-modal-hide="editSectionModal"
-                    class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 focus:outline-none">Cancel</button>
-                <button type="submit" name="editSection"
-                    class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 focus:outline-none">Save</button>
-            </div>
-        </form>
-        <button type="button" data-modal-hide="editSectionModal"
-            class="absolute top-2 right-2 text-gray-600 hover:text-gray-800 focus:outline-none"
-            aria-label="Close">&times;</button>
-    </div>
-</div>
+<?php include_once __DIR__ . '../../../modals/admin/edit_section_modal.php'; ?>
+
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
@@ -244,10 +201,25 @@ require_once __DIR__ . '/functions/func_sections.php';
             button.addEventListener('click', function () {
                 const sectionID = this.getAttribute('data-section-id');
                 const sectionName = this.getAttribute('data-section-name');
+                // You need to also pass the ProgramID for the modal
+                // You can add data-program-id to the button in the table
+                const programID = this.getAttribute('data-program-id');
 
-                // Populate the edit modal fields
-                document.getElementById('editSectionID').value = sectionID;
-                document.getElementById('editSectionName').value = sectionName;
+                // Call the modal population function from edit_section_modal.php
+                if (typeof setEditSectionModal === 'function') {
+                    setEditSectionModal({
+                        SectionID: sectionID,
+                        SectionName: sectionName,
+                        ProgramID: programID
+                    });
+                } else {
+                    // Fallback: set fields directly (legacy)
+                    document.getElementById('editSectionID').value = sectionID;
+                    document.getElementById('editSectionName').value = sectionName;
+                    if (programID) {
+                        document.getElementById('editProgramID').value = programID;
+                    }
+                }
 
                 openModal(editModal);
             });
