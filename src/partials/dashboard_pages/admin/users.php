@@ -6,6 +6,7 @@ require_once __DIR__ . '/functions/func_users.php';
 
 <?php include_once __DIR__ . '/../../modals/admin/add_new_users_modal.php'; ?>
 
+
 <section class="p-4 sm:p-6 bg-white rounded shadow-md overflow-x-auto">
     <?php
     $type = strtolower($_GET['type'] ?? '');
@@ -159,7 +160,7 @@ require_once __DIR__ . '/functions/func_users.php';
 
 </section>
 
-<!-- Edit User Modal -->
+<!-- EDIT USER MODAL -->
 <?php include_once __DIR__ . '/../../modals/admin/edit_user_modal.php'; ?>
 
 <script>
@@ -197,9 +198,9 @@ require_once __DIR__ . '/functions/func_users.php';
             });
         });
 
-        // Edit button click handler
-        document.querySelectorAll('.edit-btn').forEach(button => {
-            button.addEventListener('click', function () {
+        // Edit button click handler (role-dependent)
+        document.querySelectorAll('.edit-btn').forEach(function (editBtn) {
+            editBtn.addEventListener('click', function () {
                 const userID = this.getAttribute('data-user');
                 const middleName = this.getAttribute('data-middle-name') || '';
                 const row = this.closest('tr');
@@ -219,100 +220,113 @@ require_once __DIR__ . '/functions/func_users.php';
                     return visiblePart + maskedPart;
                 }
 
-                document.getElementById('editUserID').value = userID;
-                document.getElementById('editFirstName').value = firstName;
+                // Set values for common fields
+                if (document.getElementById('editUserID')) document.getElementById('editUserID').value = userID;
+                if (document.getElementById('editFirstName')) document.getElementById('editFirstName').value = firstName;
                 <?php if ($type === 'admin' || $type === 'faculty'): ?>
-                    document.getElementById('editMiddleName').value = middleName;
-                    document.getElementById('editUsername').value = username; // set hidden input to original username
-                    document.getElementById('editUsernameDisplay').value = maskUsername(username); // set visible input to masked username
+                    if (document.getElementById('editMiddleName')) document.getElementById('editMiddleName').value = middleName;
+                    if (document.getElementById('editUsername')) document.getElementById('editUsername').value = username;
+                    if (document.getElementById('editUsernameDisplay')) document.getElementById('editUsernameDisplay').value = maskUsername(username);
                 <?php endif; ?>
-                document.getElementById('editLastName').value = lastName;
-                document.getElementById('editPassword').value = '';
+                if (document.getElementById('editLastName')) document.getElementById('editLastName').value = lastName;
+                if (document.getElementById('editPassword')) document.getElementById('editPassword').value = '';
 
-                // New code to handle role and show/hide subject selection
+                // Role-dependent fields
                 const role = '<?php echo $type; ?>';
-                const editDepartmentDiv = document.getElementById('editDepartmentDiv');
-                const editProgramDiv = document.getElementById('editProgramDiv');
-                const editPreferredSubjectsDiv = document.getElementById('editPreferredSubjectsDiv');
-                const editDepartment = document.getElementById('editDepartment');
-                const editProgram = document.getElementById('editProgram');
-                const editPreferredSubjects = document.getElementById('editPreferredSubjects');
 
                 if (role === 'faculty') {
-                    editDepartmentDiv.classList.remove('hidden');
-                    editProgramDiv.classList.remove('hidden');
-                    editPreferredSubjectsDiv.classList.remove('hidden');
+                    const editDepartmentDiv = document.getElementById('editDepartmentDiv');
+                    const editProgramDiv = document.getElementById('editProgramDiv');
+                    const editPreferredSubjectsDiv = document.getElementById('editPreferredSubjectsDiv');
+                    const editDepartment = document.getElementById('editDepartment');
+                    const editProgram = document.getElementById('editProgram');
+                    const editPreferredSubjects = document.getElementById('editPreferredSubjects');
 
-                    // Fetch and populate user's current department, program, and preferred subjects
-                    fetch('src/partials/dashboard_pages/admin/functions/func_users.php?action=getUserDetails&userID=' + userID)
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.departmentID) {
-                                editDepartment.value = data.departmentID;
+                    if (editDepartmentDiv) editDepartmentDiv.classList.remove('hidden');
+                    if (editProgramDiv) editProgramDiv.classList.remove('hidden');
+                    if (editPreferredSubjectsDiv) editPreferredSubjectsDiv.classList.remove('hidden');
+
+                    // Only run faculty logic if all elements exist
+                    if (editDepartment && editProgram && editPreferredSubjects) {
+                        // Fetch and populate user's current department, program, and preferred subjects
+                        fetch('src/partials/dashboard_pages/admin/functions/func_users.php?action=getUserDetails&userID=' + userID)
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.departmentID) {
+                                    editDepartment.value = data.departmentID;
+                                }
+                                if (data.programID) {
+                                    editProgram.value = data.programID;
+                                }
+                                // Fetch subjects for the program
+                                fetch('src/partials/modals/admin/add_new_users_modal.php?action=getCurriculumSubjects&programId=' + data.programID)
+                                    .then(response => response.json())
+                                    .then(subjects => {
+                                        editPreferredSubjects.innerHTML = '';
+                                        subjects.forEach(subject => {
+                                            const option = document.createElement('option');
+                                            option.value = subject.CurriculumID;
+                                            option.textContent = subject.SubjectName;
+                                            if (data.preferredSubjects && data.preferredSubjects.includes(subject.CurriculumID)) {
+                                                option.selected = true;
+                                            }
+                                            editPreferredSubjects.appendChild(option);
+                                        });
+                                    });
+                            });
+
+                        // Remove previous event listeners if any (optional, for safety)
+                        editDepartment.onchange = null;
+                        editProgram.onchange = null;
+
+                        // Event listeners for cascading selects
+                        editDepartment.addEventListener('change', function () {
+                            const selectedDeptId = this.value;
+                            let found = false;
+                            for (let option of editProgram.options) {
+                                if (option.getAttribute('data-department') === selectedDeptId) {
+                                    editProgram.value = option.value;
+                                    found = true;
+                                    break;
+                                }
                             }
-                            if (data.programID) {
-                                editProgram.value = data.programID;
+                            if (!found) {
+                                editProgram.value = '';
                             }
-                            // Fetch subjects for the program
-                            fetch('src/partials/modals/admin/add_new_users_modal.php?action=getCurriculumSubjects&programId=' + data.programID)
+                            editProgram.dispatchEvent(new Event('change'));
+                        });
+
+                        editProgram.addEventListener('change', function () {
+                            const programId = this.value;
+                            editPreferredSubjects.innerHTML = '';
+                            if (!programId) return;
+                            fetch('src/partials/modals/admin/add_new_users_modal.php?action=getCurriculumSubjects&programId=' + programId)
                                 .then(response => response.json())
                                 .then(subjects => {
-                                    editPreferredSubjects.innerHTML = '';
                                     subjects.forEach(subject => {
                                         const option = document.createElement('option');
                                         option.value = subject.CurriculumID;
                                         option.textContent = subject.SubjectName;
-                                        if (data.preferredSubjects && data.preferredSubjects.includes(subject.CurriculumID)) {
-                                            option.selected = true;
-                                        }
                                         editPreferredSubjects.appendChild(option);
                                     });
                                 });
+                            // Update department select based on program
+                            const selectedOption = editProgram.options[editProgram.selectedIndex];
+                            const departmentId = selectedOption.getAttribute('data-department');
+                            if (departmentId) {
+                                editDepartment.value = departmentId;
+                            }
                         });
+                    }
                 } else {
-                    editDepartmentDiv.classList.add('hidden');
-                    editProgramDiv.classList.add('hidden');
-                    editPreferredSubjectsDiv.classList.add('hidden');
+                    // Hide faculty-only fields for non-faculty roles
+                    const editDepartmentDiv = document.getElementById('editDepartmentDiv');
+                    const editProgramDiv = document.getElementById('editProgramDiv');
+                    const editPreferredSubjectsDiv = document.getElementById('editPreferredSubjectsDiv');
+                    if (editDepartmentDiv) editDepartmentDiv.classList.add('hidden');
+                    if (editProgramDiv) editProgramDiv.classList.add('hidden');
+                    if (editPreferredSubjectsDiv) editPreferredSubjectsDiv.classList.add('hidden');
                 }
-
-                // Event listeners for cascading selects
-                editDepartment.addEventListener('change', function () {
-                    const selectedDeptId = this.value;
-                    let found = false;
-                    for (let option of editProgram.options) {
-                        if (option.getAttribute('data-department') === selectedDeptId) {
-                            editProgram.value = option.value;
-                            found = true;
-                            break;
-                        }
-                    }
-                    if (!found) {
-                        editProgram.value = '';
-                    }
-                    editProgram.dispatchEvent(new Event('change'));
-                });
-
-                editProgram.addEventListener('change', function () {
-                    const programId = this.value;
-                    editPreferredSubjects.innerHTML = '';
-                    if (!programId) return;
-                    fetch('src/partials/modals/admin/add_new_users_modal.php?action=getCurriculumSubjects&programId=' + programId)
-                        .then(response => response.json())
-                        .then(subjects => {
-                            subjects.forEach(subject => {
-                                const option = document.createElement('option');
-                                option.value = subject.CurriculumID;
-                                option.textContent = subject.SubjectName;
-                                editPreferredSubjects.appendChild(option);
-                            });
-                        });
-                    // Update department select based on program
-                    const selectedOption = editProgram.options[editProgram.selectedIndex];
-                    const departmentId = selectedOption.getAttribute('data-department');
-                    if (departmentId) {
-                        editDepartment.value = departmentId;
-                    }
-                });
 
                 const editModal = document.getElementById('editUserModal');
                 if (editModal) {
@@ -322,68 +336,68 @@ require_once __DIR__ . '/functions/func_users.php';
             });
         });
 
-            // Edit form submit handler with AJAX
-            const editUserForm = document.getElementById('editUserForm');
-            if (editUserForm) {
-                editUserForm.addEventListener('submit', function (e) {
-                    e.preventDefault();
-                    const formData = new FormData(editUserForm);
-                    formData.append('btnEdit', 'Save Changes'); // Add btnEdit parameter for PHP detection
-                    formData.append('action', 'editUser'); // Explicitly add action for clarity
-                    fetch('src/partials/dashboard_pages/admin/functions/func_users.php', {
-                        method: 'POST',
-                        body: formData
-                    })
-                        .then(response => response.text())
-                        .then(data => {
-                            const messageContainer = document.getElementById('messageContainer');
-                            messageContainer.innerHTML = data;
+        // Edit form submit handler with AJAX
+        const editUserForm = document.getElementById('editUserForm');
+        if (editUserForm) {
+            editUserForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+                const formData = new FormData(editUserForm);
+                formData.append('btnEdit', 'Save Changes'); // Add btnEdit parameter for PHP detection
+                formData.append('action', 'editUser'); // Explicitly add action for clarity
+                fetch('src/partials/dashboard_pages/admin/functions/func_users.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                    .then(response => response.text())
+                    .then(data => {
+                        const messageContainer = document.getElementById('messageContainer');
+                        messageContainer.innerHTML = data;
 
-                            // Close modal on success
-                            if (data.includes('Success!')) {
-                                const editModal = document.getElementById('editUserModal');
-                                if (editModal) {
-                                    editModal.classList.remove('opacity-100', 'pointer-events-auto');
-                                    editModal.classList.add('opacity-0', 'pointer-events-none');
+                        // Close modal on success
+                        if (data.includes('Success!')) {
+                            const editModal = document.getElementById('editUserModal');
+                            if (editModal) {
+                                editModal.classList.remove('opacity-100', 'pointer-events-auto');
+                                editModal.classList.add('opacity-0', 'pointer-events-none');
+                            }
+                            // Update the table row with new data
+                            const userID = document.getElementById('editUserID').value;
+                            const firstName = document.getElementById('editFirstName').value;
+                            const lastName = document.getElementById('editLastName').value;
+                            const username = document.getElementById('editUsername').value;
+
+                            // Mask username as in the table
+                            function maskUsername(username) {
+                                if (username.length <= 3) {
+                                    return username;
                                 }
-                                // Update the table row with new data
-                                const userID = document.getElementById('editUserID').value;
-                                const firstName = document.getElementById('editFirstName').value;
-                                const lastName = document.getElementById('editLastName').value;
-                                const username = document.getElementById('editUsername').value;
-
-                                // Mask username as in the table
-                                function maskUsername(username) {
-                                    if (username.length <= 3) {
-                                        return username;
-                                    }
-                                    const visiblePart = username.substring(0, 3);
-                                    const maskedPart = '*'.repeat(username.length - 3);
-                                    return visiblePart + maskedPart;
-                                }
-
-                                // Find the row with matching userID
-                                const rows = document.querySelectorAll('tbody tr');
-                                rows.forEach(row => {
-                                    const editBtn = row.querySelector('.edit-btn');
-                                    if (editBtn && editBtn.getAttribute('data-user') === userID) {
-                                        row.querySelector('td:nth-child(2)').textContent = firstName;
-                                        row.querySelector('td:nth-child(3)').textContent = lastName;
-                                        row.querySelector('td:nth-child(4)').textContent = maskUsername(username);
-                                    }
-                                });
+                                const visiblePart = username.substring(0, 3);
+                                const maskedPart = '*'.repeat(username.length - 3);
+                                return visiblePart + maskedPart;
                             }
 
-                            // Auto-dismiss messages after 3 seconds
-                            setTimeout(() => {
-                                messageContainer.innerHTML = '';
-                            }, 3000);
-                        })
-                        .catch(error => {
-                            console.error('Error:', error);
-                        });
-                });
-            }
+                            // Find the row with matching userID
+                            const rows = document.querySelectorAll('tbody tr');
+                            rows.forEach(row => {
+                                const editBtn = row.querySelector('.edit-btn');
+                                if (editBtn && editBtn.getAttribute('data-user') === userID) {
+                                    row.querySelector('td:nth-child(2)').textContent = firstName;
+                                    row.querySelector('td:nth-child(3)').textContent = lastName;
+                                    row.querySelector('td:nth-child(4)').textContent = maskUsername(username);
+                                }
+                            });
+                        }
+
+                        // Auto-dismiss messages after 3 seconds
+                        setTimeout(() => {
+                            messageContainer.innerHTML = '';
+                        }, 3000);
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+            });
+        }
 
         // Modal close buttons
         document.querySelectorAll('[data-modal-hide]').forEach(button => {

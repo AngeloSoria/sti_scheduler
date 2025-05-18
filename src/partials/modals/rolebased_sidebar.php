@@ -200,46 +200,46 @@
         });
     })();
 
-    document.getElementById('usersAccordionBtn').addEventListener('click', function () {
-        const submenu = document.getElementById('usersSubmenu');
-        const expanded = this.getAttribute('aria-expanded') === 'true';
-        this.setAttribute('aria-expanded', !expanded);
-        submenu.classList.toggle('hidden');
-        submenu.classList.toggle('block');
-        document.getElementById('usersAccordionIcon').classList.toggle('rotate-180');
+    // document.getElementById('usersAccordionBtn').addEventListener('click', function () {
+    //     const submenu = document.getElementById('usersSubmenu');
+    //     const expanded = this.getAttribute('aria-expanded') === 'true';
+    //     this.setAttribute('aria-expanded', !expanded);
+    //     submenu.classList.toggle('hidden');
+    //     submenu.classList.toggle('block');
+    //     document.getElementById('usersAccordionIcon').classList.toggle('rotate-180');
 
-        if (!expanded) {
-            const sidebar = document.getElementById('sidebar');
-            const sidebarClosed = sidebar.classList.contains('sidebar-closed');
-            if (sidebarClosed) {
-                sidebar.classList.remove('w-16', 'sidebar-closed');
-                sidebar.classList.add('w-64');
-                const sidebarTexts = sidebar.querySelectorAll('.sidebar-text');
-                const sidebarLinks = sidebar.querySelectorAll('.sidebar-link');
-                sidebarTexts.forEach(text => {
-                    text.style.display = 'inline';
-                    setTimeout(() => {
-                        text.style.opacity = '1';
-                        text.style.transform = 'translateX(0)';
-                    }, 10);
-                });
-                sidebarLinks.forEach(link => {
-                    link.classList.remove('justify-center');
-                    link.classList.add('justify-start');
-                    link.classList.add('px-4');
-                    link.classList.remove('px-0');
-                });
-                document.getElementById('sidebarClosedIcon').classList.add('hidden');
-                document.getElementById('sidebarOpenedIcon').classList.remove('hidden');
-                const usersAccordionBtn = document.getElementById('usersAccordionBtn');
-                usersAccordionBtn.classList.remove('justify-center');
-                usersAccordionBtn.classList.add('justify-between');
-                usersAccordionBtn.classList.add('px-4');
-                usersAccordionBtn.classList.remove('px-0');
-                localStorage.setItem('sidebarClosed', false);
-            }
-        }
-    });
+    //     if (!expanded) {
+    //         const sidebar = document.getElementById('sidebar');
+    //         const sidebarClosed = sidebar.classList.contains('sidebar-closed');
+    //         if (sidebarClosed) {
+    //             sidebar.classList.remove('w-16', 'sidebar-closed');
+    //             sidebar.classList.add('w-64');
+    //             const sidebarTexts = sidebar.querySelectorAll('.sidebar-text');
+    //             const sidebarLinks = sidebar.querySelectorAll('.sidebar-link');
+    //             sidebarTexts.forEach(text => {
+    //                 text.style.display = 'inline';
+    //                 setTimeout(() => {
+    //                     text.style.opacity = '1';
+    //                     text.style.transform = 'translateX(0)';
+    //                 }, 10);
+    //             });
+    //             sidebarLinks.forEach(link => {
+    //                 link.classList.remove('justify-center');
+    //                 link.classList.add('justify-start');
+    //                 link.classList.add('px-4');
+    //                 link.classList.remove('px-0');
+    //             });
+    //             document.getElementById('sidebarClosedIcon').classList.add('hidden');
+    //             document.getElementById('sidebarOpenedIcon').classList.remove('hidden');
+    //             const usersAccordionBtn = document.getElementById('usersAccordionBtn');
+    //             usersAccordionBtn.classList.remove('justify-center');
+    //             usersAccordionBtn.classList.add('justify-between');
+    //             usersAccordionBtn.classList.add('px-4');
+    //             usersAccordionBtn.classList.remove('px-0');
+    //             localStorage.setItem('sidebarClosed', false);
+    //         }
+    //     }
+    // });
 </script>
 
 <style>
