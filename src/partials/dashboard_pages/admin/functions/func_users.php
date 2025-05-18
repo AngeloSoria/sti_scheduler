@@ -133,53 +133,30 @@ if (isset($_POST['action'])) {
 
                     $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
-                    $sql = "INSERT INTO users (Username, Password, FirstName, MiddleName, LastName, Role";
+                    $sql = "INSERT INTO users (Username, Password, FirstName, MiddleName, LastName, Role) VALUES (?, ?, ?, ?, ?, ?)";
                     $params = [$username, $hashedPassword, $firstName, $middleName, $lastName, $role];
-
-                    if ($profilePic && $profilePic['error'] === UPLOAD_ERR_OK) {
-                        $fileTmpPath = $profilePic['tmp_name'];
-                        $fileExt = strtolower(pathinfo($profilePic['name'], PATHINFO_EXTENSION));
-                        $allowedExts = ['jpg', 'jpeg', 'png', 'gif'];
-
-                        if (in_array($fileExt, $allowedExts)) {
-                            $profilePicData = file_get_contents($fileTmpPath);
-                            if ($profilePicData === false) {
-                                if ($isAjax) {
-                                    header('Content-Type: application/json');
-                                    echo json_encode(['success' => false, 'message' => "Failed to read profile picture data."]);
-                                    exit;
-                                } else {
-                                    $_SESSION['errorMessage'] = "Failed to read profile picture data.";
-                                    header("Location: /dashboard?view=users&type=" . urlencode($type));
-                                    exit;
-                                }
-                            }
-                            $sql .= ", ProfilePic";
-                            $params[] = $profilePicData;
-                        } else {
-                            if ($isAjax) {
-                                header('Content-Type: application/json');
-                                echo json_encode(['success' => false, 'message' => "Invalid profile picture format. Allowed: jpg, jpeg, png, gif."]);
-                                exit;
-                            } else {
-                                $_SESSION['errorMessage'] = "Invalid profile picture format. Allowed: jpg, jpeg, png, gif.";
-                                header("Location: /dashboard?view=users&type=" . urlencode($type));
-                                exit;
-                            }
-                        }
-                    }
-
-                    $sql .= ") VALUES (?, ?, ?, ?, ?, ?";
-
-                    if ($profilePic && $profilePic['error'] === UPLOAD_ERR_OK && in_array($fileExt, $allowedExts)) {
-                        $sql .= ", ?";
-                    }
-
-                    $sql .= ")";
 
                     $stmtInsert = $conn->prepare($sql);
                     if ($stmtInsert->execute($params)) {
                         $newUserID = $conn->lastInsertId();
+
+                        // Handle profile picture upload using FileUploader
+                        if ($profilePic && $profilePic['error'] === UPLOAD_ERR_OK) {
+                            require_once(__DIR__ . '/../../../../functions/FileUploader.php');
+                            $uploader = new FileUploader(__DIR__ . '/../../../../uploads/profile_pic');
+                            $uploadResult = $uploader->uploadProfilePic($profilePic, $newUserID);
+                            if (isset($uploadResult['error'])) {
+                                if ($isAjax) {
+                                    header('Content-Type: application/json');
+                                    echo json_encode(['success' => false, 'message' => $uploadResult['error']]);
+                                    exit;
+                                } else {
+                                    $_SESSION['errorMessage'] = $uploadResult['error'];
+                                    header("Location: /dashboard?view=users&type=" . urlencode($type));
+                                    exit;
+                                }
+                            }
+                        }
 
                         if ($role === 'faculty') {
                             // Insert into facultymembers

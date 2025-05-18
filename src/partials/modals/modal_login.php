@@ -6,10 +6,10 @@
         <form method="POST" class="space-y-6">
             <input type="hidden" name="context" value="login">
             <input type="text" name="username"
-                class="w-full border border-gray-300 p-3 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-300"
+                class="w-full border border-gray-300 p-3 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
                 placeholder="Username" required>
             <input type="password" name="password"
-                class="w-full border border-gray-300 p-3 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-300"
+                class="w-full border border-gray-300 p-3 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
                 placeholder="Password" required>
             <div class="flex gap-3">
                 <button type="submit"

@@ -28,7 +28,7 @@ $programs = getPrograms();
 
 <div id="registerModal" tabindex="-1" aria-hidden="true"
     class="opacity-0 pointer-events-none fixed inset-0 z-50 flex items-center justify-center overflow-y-auto overflow-x-hidden bg-black bg-opacity-50 transition-opacity duration-300 ease-in-out">
-    <div class="relative w-full max-w-xl p-6 mx-auto bg-white rounded-lg shadow-lg">
+    <div class="relative w-full max-w-xl p-6 mx-auto bg-white rounded-lg shadow-lg max-h-[80vh] overflow-y-auto">
         <div class="flex items-center justify-between mb-6">
             <h2 class="text-2xl font-semibold text-gray-900">Register</h2>
             <button type="button" aria-label="Close modal"
@@ -65,6 +65,16 @@ $programs = getPrograms();
                         class="w-full border border-gray-300 p-3 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-300"
                         placeholder="Password" required>
                 </div>
+            </div>
+            <div class="flex gap-4">
+                <div class="w-1/2">
+                    <label for="addConfirmPassword" class="block mb-1 text-gray-700 font-semibold">Confirm Password</label>
+                    <input type="password" name="addConfirmPassword" id="addConfirmPassword"
+                        class="w-full border border-gray-300 p-3 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-300"
+                        placeholder="Confirm Password" required>
+                    <span id="confirmPasswordError" class="text-red-500 text-sm hidden">Passwords do not match.</span>
+                </div>
+                <div class="w-1/2"></div>
             </div>
             <div class="flex gap-4">
                 <div class="w-1/3">
@@ -255,6 +265,19 @@ $programs = getPrograms();
         const departmentSelect = document.getElementById('addDepartment');
         if (departmentId) {
             departmentSelect.value = departmentId;
+        }
+    });
+
+    // Confirm password validation
+    document.getElementById('addUserForm').addEventListener('submit', function (e) {
+        const password = document.getElementById('addPassword').value;
+        const confirmPassword = document.getElementById('addConfirmPassword').value;
+        const errorSpan = document.getElementById('confirmPasswordError');
+        if (password !== confirmPassword) {
+            errorSpan.classList.remove('hidden');
+            e.preventDefault();
+        } else {
+            errorSpan.classList.add('hidden');
         }
     });
 
