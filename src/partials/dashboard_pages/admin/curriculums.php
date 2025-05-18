@@ -82,6 +82,26 @@ require_once __DIR__ . '/functions/func_curriculums.php';
                         </option>
                     <?php endforeach; ?>
                 </select>
+                <label for="filter-semester" class="text-sm font-medium ml-4">Semester:</label>
+                <select id="filter-semester" name="semester" onchange="this.form.submit()"
+                    class="border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-auto">
+                    <option value="">All</option>
+                    <option value="1" <?php if (isset($_GET['semester']) && $_GET['semester'] == '1')
+                        echo 'selected'; ?>>
+                        1</option>
+                    <option value="2" <?php if (isset($_GET['semester']) && $_GET['semester'] == '2')
+                        echo 'selected'; ?>>
+                        2</option>
+                </select>
+                <label for="filter-units" class="text-sm font-medium ml-4">Units:</label>
+                <select id="filter-units" name="units" onchange="this.form.submit()"
+                    class="border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-auto">
+                    <option value="">All</option>
+                    <?php for ($u = 1; $u <= 6; $u++): ?>
+                        <option value="<?php echo $u; ?>" <?php if (isset($_GET['units']) && $_GET['units'] == $u)
+                               echo 'selected'; ?>><?php echo $u; ?></option>
+                    <?php endfor; ?>
+                </select>
                 <input type="text" id="search" name="search" value="<?php echo htmlspecialchars($search); ?>"
                     placeholder="Search..."
                     class="border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-auto" />
@@ -101,13 +121,13 @@ require_once __DIR__ . '/functions/func_curriculums.php';
         <table class="min-w-full border border-gray-200 divide-y divide-gray-200">
             <thead class="bg-gray-50">
                 <tr>
-                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">#
-                    </th>
                     <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subject
                     </th>
                     <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit</th>
                     <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Year
                         Level</th>
+                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Semester
+                    </th>
                     <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Program
                     </th>
                     <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions
@@ -118,12 +138,12 @@ require_once __DIR__ . '/functions/func_curriculums.php';
                 <?php if (!empty($data)): ?>
                     <?php for ($i = 0; $i < count($data); $i++): ?>
                         <tr>
-                            <td class="px-4 py-2 whitespace-nowrap"><?php echo $offset + $i + 1; ?></td>
                             <td class="px-4 py-2 whitespace-nowrap"><?php echo htmlspecialchars($data[$i]['SubjectName']); ?>
                             </td>
-                            <td class="px-4 py-2 whitespace-nowrap"><?php echo htmlspecialchars($data[$i]['CreditUnit']); ?>
+                            <td class="px-4 py-2 whitespace-nowrap"><?php echo htmlspecialchars($data[$i]['Units']); ?>
                             </td>
-                            <td class="px-4 py-2 whitespace-nowrap"><?php echo htmlspecialchars($data[$i]['Year']); ?></td>
+                            <td class="px-4 py-2 whitespace-nowrap"><?php echo htmlspecialchars($data[$i]['YearLevel']); ?></td>
+                            <td class="px-4 py-2 whitespace-nowrap"><?php echo htmlspecialchars($data[$i]['Semester']); ?></td>
                             <td class="px-4 py-2 whitespace-nowrap"><?php echo htmlspecialchars($data[$i]['ProgramName']); ?>
                             </td>
                             <td class="px-4 py-2 whitespace-nowrap text-center space-x-2">
@@ -201,14 +221,14 @@ require_once __DIR__ . '/functions/func_curriculums.php';
             </form>
         </div>
     </div>
-<?php include __DIR__ . '/../../modals/admin/add_new_curriculum_modal.php'; ?>
+    <?php include __DIR__ . '/../../modals/admin/add_new_curriculum_modal.php'; ?>
 
     <!-- Edit Curriculum Modal -->
     <div id="editCurriculumModal" tabindex="-1" aria-hidden="true"
         class="opacity-0 pointer-events-none overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full transition-opacity duration-300 ease-in-out">
         <!-- Backdrop -->
         <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity duration-300 ease-in-out"></div>
-        <div class="relative p-4 w-full max-w-md max-h-full z-10">
+        <div class="relative p-4 w-full max-w-4xl max-h-full z-10">
             <div class="relative bg-white rounded-lg shadow">
                 <div class="flex items-center justify-between p-4 border-b rounded-t">
                     <h3 class="text-xl font-semibold text-gray-900">
@@ -227,33 +247,60 @@ require_once __DIR__ . '/functions/func_curriculums.php';
                     </button>
                 </div>
                 <div class="p-6 space-y-6">
-                    <form method="POST" action="" id="editCurriculumForm">
+                    <form method="POST" action="" id="editCurriculumForm" class="grid grid-cols-3 gap-4">
                         <input type="hidden" name="editCurriculumID" id="editCurriculumID" />
-                        <div class="mb-4">
+                        <div>
+                            <label for="editCourseID" class="block text-gray-700 text-sm font-bold mb-2">
+                                Course ID:
+                            </label>
+                            <input type="number" name="editCourseID" id="editCourseID"
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline no-spinner"
+                                placeholder="e.g., 1628">
+                            <p class="text-gray-500 text-xs italic">Enter the course ID if applicable.</p>
+                        </div>
+                        <div>
+                            <label for="editSubjectArea" class="block text-gray-700 text-sm font-bold mb-2">
+                                Subject Area: <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" name="editSubjectArea" id="editSubjectArea" required
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                placeholder="GEDC" pattern="^[a-zA-Z]{2,}$"
+                                title="Subject area must be at least 2 letters and contain only letters.">
+                            <p class="text-gray-500 text-xs italic">Enter the subject area (letters only, no spaces or
+                                numbers).</p>
+                        </div>
+                        <div>
+                            <label for="editCatalogNo" class="block text-gray-700 text-sm font-bold mb-2">
+                                Catalog Number:
+                            </label>
+                            <input type="number" name="editCatalogNo" id="editCatalogNo"
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline no-spinner"
+                                placeholder="e.g., 1005">
+                            <p class="text-gray-500 text-xs italic">Enter the catalog number.</p>
+                        </div>
+                        <div class="col-span-2">
                             <label for="editSubjectName" class="block text-gray-700 text-sm font-bold mb-2">
-                                Subject Name:
-                                <span class="text-red-500">*</span>
+                                Subject Name: <span class="text-red-500">*</span>
                             </label>
                             <input type="text" name="editSubjectName" id="editSubjectName" required
                                 class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                placeholder="e.g., Introduction to Programming">
+                                placeholder="e.g., Mathematics in the Modern World"
+                                pattern="^(?=.*[a-zA-Z])[a-zA-Z\s]{2,}$"
+                                title="Subject name must be at least 2 letters and contain only letters and spaces.">
                             <p class="text-gray-500 text-xs italic">Enter the full name of the subject.</p>
                         </div>
-                        <div class="mb-4">
-                            <label for="editCreditUnit" class="block text-gray-700 text-sm font-bold mb-2">
-                                Credit Unit:
-                                <span class="text-red-500">*</span>
+                        <div>
+                            <label for="editUnits" class="block text-gray-700 text-sm font-bold mb-2">
+                                Units:
                             </label>
-                            <input type="number" name="editCreditUnit" id="editCreditUnit" required min="1"
-                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            <input type="number" name="editUnits" id="editUnits"
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline no-spinner"
                                 placeholder="e.g., 3">
-                            <p class="text-gray-500 text-xs italic">Specify the number of credit units for this subject.
-                            </p>
+                            <p class="text-gray-500 text-xs italic">Enter the number of units.</p>
                         </div>
-                        <div class="mb-4">
+                        <div>
                             <label for="editProgramName" class="block text-gray-700 text-sm font-bold mb-2">
-                                Program:
-                                <span class="text-red-500">*</span>
+                                Program: <span class="text-red-500">*</span>
                             </label>
                             <select name="editProgramName" id="editProgramName" required
                                 class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
@@ -266,10 +313,9 @@ require_once __DIR__ . '/functions/func_curriculums.php';
                             </select>
                             <p class="text-gray-500 text-xs italic">Choose the program this subject belongs to.</p>
                         </div>
-                        <div class="mb-6">
+                        <div>
                             <label for="editYearLevel" class="block text-gray-700 text-sm font-bold mb-2">
-                                Year Level:
-                                <span class="text-red-500">*</span>
+                                Year Level: <span class="text-red-500">*</span>
                             </label>
                             <select name="editYearLevel" id="editYearLevel" required
                                 class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
@@ -282,7 +328,20 @@ require_once __DIR__ . '/functions/func_curriculums.php';
                             <p class="text-gray-500 text-xs italic">Indicate the year level when this subject is
                                 offered.</p>
                         </div>
-                        <div class="flex justify-end">
+                        <div>
+                            <label for="editSemester" class="block text-gray-700 text-sm font-bold mb-2">
+                                Semester:
+                            </label>
+                            <select name="editSemester" id="editSemester"
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                                <option value="" disabled selected>Select Semester</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                            </select>
+                            <p class="text-gray-500 text-xs italic">Select the semester when this subject is offered.
+                            </p>
+                        </div>
+                        <div class="col-span-3 flex justify-end">
                             <button type="button"
                                 class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-blue-300 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10"
                                 data-modal-hide="editCurriculumModal">
@@ -298,138 +357,180 @@ require_once __DIR__ . '/functions/func_curriculums.php';
             </div>
         </div>
     </div>
-
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const addModal = document.getElementById('addNewCurriculumModal');
-            const addNewBtn = document.getElementById('addNewBtn');
-            const addCloseButtons = addModal ? addModal.querySelectorAll('[data-modal-hide]') : [];
-
-            const editModal = document.getElementById('editCurriculumModal');
-            const editCloseButtons = editModal ? editModal.querySelectorAll('[data-modal-hide]') : [];
-
-            function openModal(modal) {
-                if (modal) {
-                    modal.classList.remove('opacity-0', 'pointer-events-none');
-                    modal.classList.add('opacity-100', 'pointer-events-auto');
-                }
+        document.getElementById('editCurriculumForm').addEventListener('submit', function (event) {
+            const subjectNameInput = document.getElementById('editSubjectName');
+            const subjectAreaInput = document.getElementById('editSubjectArea');
+            const subjectNameValue = subjectNameInput.value.trim();
+            const subjectAreaValue = subjectAreaInput.value.trim();
+            const subjectNameRegex = /^[a-zA-Z\s]{2,}$/;
+            const subjectAreaRegex = /^[a-zA-Z]{2,}$/;
+            if (!subjectNameRegex.test(subjectNameValue)) {
+                event.preventDefault();
+                alert('Subject name must be at least 2 letters and contain only letters and spaces.');
+                subjectNameInput.focus();
+                return;
             }
-
-            function closeModal(modal) {
-                if (modal) {
-                    modal.classList.remove('opacity-100', 'pointer-events-auto');
-                    modal.classList.add('opacity-0', 'pointer-events-none');
-                }
-            }
-
-            if (addNewBtn) {
-                addNewBtn.addEventListener('click', function () {
-                    openModal(addModal);
-                });
-            }
-
-            addCloseButtons.forEach(button => {
-                button.addEventListener('click', function () {
-                    closeModal(addModal);
-                });
-            });
-
-            editCloseButtons.forEach(button => {
-                button.addEventListener('click', function () {
-                    closeModal(editModal);
-                });
-            });
-
-            // Optional: close modal when clicking outside the modal content
-            if (addModal) {
-                addModal.addEventListener('click', function (event) {
-                    if (event.target === addModal) {
-                        closeModal(addModal);
-                    }
-                });
-            }
-
-            if (editModal) {
-                editModal.addEventListener('click', function (event) {
-                    if (event.target === editModal) {
-                        closeModal(editModal);
-                    }
-                });
-            }
-
-            // Edit button click handler
-            document.querySelectorAll('.edit-btn').forEach(button => {
-                button.addEventListener('click', function () {
-                    const curriculumID = this.getAttribute('data-subject');
-                    // Fetch curriculum data from the row or via AJAX if needed
-                    const row = this.closest('tr');
-                    const subjectName = row.querySelector('td:nth-child(2)').textContent.trim();
-                    const creditUnit = row.querySelector('td:nth-child(3)').textContent.trim();
-                    const yearLevel = row.querySelector('td:nth-child(4)').textContent.trim();
-                    const programName = row.querySelector('td:nth-child(5)').textContent.trim();
-
-                    // Populate the edit modal fields
-                    document.getElementById('editCurriculumID').value = curriculumID;
-                    document.getElementById('editSubjectName').value = subjectName;
-                    document.getElementById('editCreditUnit').value = creditUnit;
-                    document.getElementById('editYearLevel').value = yearLevel;
-                    document.getElementById('editProgramName').value = programName;
-
-                    openModal(editModal);
-                });
-            });
-
-            const messageContainer = document.getElementById('messageContainer');
-
-            // Delete button click handler
-            document.querySelectorAll('.delete-btn').forEach(button => {
-                button.addEventListener('click', function () {
-                    const curriculumID = this.getAttribute('data-subject');
-                    if (confirm('Are you sure you want to delete this curriculum?')) {
-                        // Send AJAX request to delete the curriculum
-                        fetch('src/partials/dashboard_pages/admin/functions/func_curriculums.php', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/x-www-form-urlencoded',
-                            },
-                            body: new URLSearchParams({
-                                'deleteCurriculumID': curriculumID
-                            })
-                        })
-                            .then(response => response.text())
-                            .then(data => {
-                                console.log('Delete response:', data);
-                                messageContainer.innerHTML = data;
-                                // Optionally, reload the page after a delay to show updated data
-                                setTimeout(() => {
-                                    location.reload();
-                                }, 1500);
-                            })
-                            .catch(error => {
-                                messageContainer.innerHTML = '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">Error deleting curriculum.</div>';
-                                console.error('Error:', error);
-                            });
-                    }
-                });
-            });
-
-            // Auto-dismiss messages after 3 seconds
-            function autoDismissMessage() {
-                setTimeout(() => {
-                    if (messageContainer) {
-                        messageContainer.innerHTML = '';
-                    }
-                }, 3000);
-            }
-
-            // Call autoDismissMessage if alert message exists on page load
-            const alertMessage = document.querySelector('div[role="alert"]');
-            if (alertMessage) {
-                setTimeout(() => {
-                    alertMessage.remove();
-                }, 3000); // 3 seconds
+            if (!subjectAreaRegex.test(subjectAreaValue)) {
+                event.preventDefault();
+                alert('Subject area must be at least 2 letters and contain only letters with no spaces or numbers.');
+                subjectAreaInput.focus();
+                return;
             }
         });
+    </script>
+    <script>
+        +        // Removed duplicate event listener for editCurriculumForm submit
+    </script>
+
+    <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const addModal = document.getElementById('addNewCurriculumModal');
+                const addNewBtn = document.getElementById('addNewBtn');
+                const addCloseButtons = addModal ? addModal.querySelectorAll('[data-modal-hide]') : [];
+
+                const editModal = document.getElementById('editCurriculumModal');
+                const editCloseButtons = editModal ? editModal.querySelectorAll('[data-modal-hide]') : [];
+
+                function openModal(modal) {
+                    if (modal) {
+                        modal.classList.remove('opacity-0', 'pointer-events-none');
+                        modal.classList.add('opacity-100', 'pointer-events-auto');
+                    }
+                }
+
+                function closeModal(modal) {
+                    if (modal) {
+                        modal.classList.remove('opacity-100', 'pointer-events-auto');
+                        modal.classList.add('opacity-0', 'pointer-events-none');
+                    }
+                }
+
+                if (addNewBtn) {
+                    addNewBtn.addEventListener('click', function () {
+                        openModal(addModal);
+                    });
+                }
+
+                addCloseButtons.forEach(button => {
+                    button.addEventListener('click', function () {
+                        closeModal(addModal);
+                    });
+                });
+
+                editCloseButtons.forEach(button => {
+                    button.addEventListener('click', function () {
+                        closeModal(editModal);
+                    });
+                });
+
+                // Optional: close modal when clicking outside the modal content
+                if (addModal) {
+                    addModal.addEventListener('click', function (event) {
+                        if (event.target === addModal) {
+                            closeModal(addModal);
+                        }
+                    });
+                }
+
+                if (editModal) {
+                    editModal.addEventListener('click', function (event) {
+                        if (event.target === editModal) {
+                            closeModal(editModal);
+                        }
+                    });
+                }
+
+                // Edit button click handler
+                document.querySelectorAll('.edit-btn').forEach(button => {
+                    button.addEventListener('click', function () {
+                        const curriculumID = this.getAttribute('data-subject');
+                        // Fetch curriculum data from the row or via AJAX if needed
+                        const row = this.closest('tr');
+                        const subjectName = row.querySelector('td:nth-child(1)').textContent.trim();
+                        const units = row.querySelector('td:nth-child(2)').textContent.trim();
+                        const yearLevel = row.querySelector('td:nth-child(3)').textContent.trim();
+                        const semester = row.querySelector('td:nth-child(4)').textContent.trim();
+                        const programName = row.querySelector('td:nth-child(5)').textContent.trim();
+
+                        // Fetch full curriculum data via AJAX
+                        fetch(`src/partials/dashboard_pages/admin/functions/get_curriculum.php?curriculumID=${curriculumID}`)
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.error) {
+                                    alert(data.error);
+                                    return;
+                                }
+                                document.getElementById('editCurriculumID').value = data.CurriculumID || '';
+                                document.getElementById('editSubjectName').value = data.SubjectName || '';
+                                document.getElementById('editUnits').value = data.Units || '';
+                                document.getElementById('editCourseID').value = data.CourseID || '';
+                                document.getElementById('editSubjectArea').value = data.SubjectArea || '';
+                                document.getElementById('editCatalogNo').value = data.CatalogNo || '';
+                                document.getElementById('editYearLevel').value = data.YearLevel || '';
+                                document.getElementById('editSemester').value = data.Semester || '';
+                                document.getElementById('editProgramName').value = data.ProgramName || '';
+
+                                openModal(editModal);
+                            })
+                            .catch(error => {
+                                alert('Error fetching curriculum data.');
+                                console.error('Error:', error);
+                            });
+                    });
+                });
+
+                const messageContainer = document.getElementById('messageContainer');
+
+                // Delete button click handler
+                document.querySelectorAll('.delete-btn').forEach(button => {
+                    button.addEventListener('click', function () {
+                        const curriculumID = this.getAttribute('data-subject');
+                        if (confirm('Are you sure you want to delete this curriculum?')) {
+                            // Send AJAX request to delete the curriculum
+                            fetch('src/partials/dashboard_pages/admin/functions/func_curriculums.php', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/x-www-form-urlencoded',
+                                },
+                                body: new URLSearchParams({
+                                    'deleteCurriculumID': curriculumID
+                                })
+                            })
+                                .then(response => response.text())
+                                .then(data => {
+                                    console.log('Delete response:', data);
+                                    messageContainer.innerHTML = data;
+                                    // Optionally, reload the page after a delay to show updated data
+                                    setTimeout(() => {
+                                        location.reload();
+                                    }, 1500);
+                                })
+                                .catch(error => {
+                                    messageContainer.innerHTML = '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">Error deleting curriculum.</div>';
+                                    console.error('Error:', error);
+                                });
+                        }
+                    });
+                });
+
+                // Auto-dismiss messages after 3 seconds
+                function autoDismissMessage() {
+                    setTimeout(() => {
+                        if (messageContainer) {
+                            messageContainer.innerHTML = '';
+                        }
+                    }, 3000);
+                }
+
+                // Call autoDismissMessage if alert message exists on page load
+                const alertMessage = document.querySelector('div[role="alert"]');
+                if (alertMessage) {
+                    setTimeout(() => {
+                        alertMessage.remove();
+                    }, 3000); // 3 seconds
+                }
+            });
     </script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {

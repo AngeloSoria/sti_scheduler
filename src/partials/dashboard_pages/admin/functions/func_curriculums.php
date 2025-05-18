@@ -23,12 +23,16 @@ if (isset($_POST['btnImport']) && isset($_FILES['csvFile'])) {
             continue;
         }
 
-        $subjectName = trim($row[0]);
-        $creditUnit = trim($row[1]);
-        $programName = trim($row[2]);
-        $yearLevel = trim($row[3]);
+        $courseID = trim($row[0]);
+        $subjectArea = trim($row[1]);
+        $catalogNo = trim($row[2]);
+        $subjectName = trim($row[3]);
+        $units = trim($row[4]);
+        $programName = trim($row[5]);
+        $yearLevel = trim($row[6]);
+        $semester = trim($row[7]);
 
-        // Lookup ProgramID using PDO
+        // Lookup ProgramID using ProgramName from CSV
         $stmt = $conn->prepare("SELECT ProgramID FROM programs WHERE ProgramName = ?");
         $stmt->execute([$programName]);
         $program = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -37,8 +41,8 @@ if (isset($_POST['btnImport']) && isset($_FILES['csvFile'])) {
             $programID = $program['ProgramID'];
 
             // Insert into curriculum
-            $stmtInsert = $conn->prepare("INSERT INTO curriculums (SubjectName, CreditUnit, ProgramID, Year) VALUES (?, ?, ?, ?)");
-            if (!$stmtInsert->execute([$subjectName, $creditUnit, $programID, $yearLevel])) {
+            $stmtInsert = $conn->prepare("INSERT INTO curriculums (CourseID, SubjectArea, CatalogNo, SubjectName, Units, ProgramID, YearLevel, Semester) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+            if (!$stmtInsert->execute([$courseID, $subjectArea, $catalogNo, $subjectName, $units, $programID, $yearLevel, $semester])) {
                 $importSuccess = false;
                 $importErrors[] = "Error inserting subject '$subjectName' for program '$programName'.";
                 break;
@@ -70,9 +74,14 @@ if (isset($_POST['btnImport']) && isset($_FILES['csvFile'])) {
 // Handle Manual Add
 if (isset($_POST['btnAdd'])) {
     $addSubjectName = trim($_POST['addSubjectName']);
-    $addCreditUnit = trim($_POST['addCreditUnit']);
+    $addUnits = trim($_POST['addUnits']);
+    $addCourseID = isset($_POST['addCourseID']) ? trim($_POST['addCourseID']) : null;
+    $addSubjectArea = isset($_POST['addSubjectArea']) ? trim($_POST['addSubjectArea']) : null;
+    $addCatalogNo = isset($_POST['addCatalogNo']) ? trim($_POST['addCatalogNo']) : null;
+    $addUnits = isset($_POST['addUnits']) ? trim($_POST['addUnits']) : null;
     $addProgramName = trim($_POST['addProgramName']);
     $addYearLevel = trim($_POST['addYearLevel']);
+    $addSemester = isset($_POST['addSemester']) ? trim($_POST['addSemester']) : null;
 
     // Lookup ProgramID
     $stmt = $conn->prepare("SELECT ProgramID FROM programs WHERE ProgramName = ?");
@@ -82,19 +91,19 @@ if (isset($_POST['btnAdd'])) {
     if ($program) {
         $programID = $program['ProgramID'];
 
-        // Check for duplicate curriculum with same subject, year, credit unit, and program
-        $stmtCheck = $conn->prepare("SELECT CurriculumID FROM curriculums WHERE SubjectName = ? AND Year = ? AND CreditUnit = ? AND ProgramID = ?");
-        $stmtCheck->execute([$addSubjectName, $addYearLevel, $addCreditUnit, $programID]);
+        // Check for duplicate curriculum with same subject, year, unit, and program
+        $stmtCheck = $conn->prepare("SELECT CurriculumID FROM curriculums WHERE SubjectName = ? AND YearLevel = ? AND Units = ? AND ProgramID = ?");
+        $stmtCheck->execute([$addSubjectName, $addYearLevel, $addUnits, $programID]);
         if ($stmtCheck->fetch()) {
             $addSuccess = false;
-            $addErrors[] = "Curriculum with the same subject, year, credit unit, and program already exists.";
+            $addErrors[] = "Curriculum with the same subject, year, unit, and program already exists.";
             echo '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert" id="message">
                         <strong class="font-bold">Error!</strong>
-                        <span class="block sm:inline">Failed to add subject. Curriculum with the same subject, year, credit unit, and program already exists.</span>
+                        <span class="block sm:inline">Failed to add subject. Curriculum with the same subject, year, unit, and program already exists.</span>
                     </div>';
         } else {
-            $stmtInsert = $conn->prepare("INSERT INTO curriculums (SubjectName, CreditUnit, ProgramID, Year) VALUES (?, ?, ?, ?)");
-            if ($stmtInsert->execute([$addSubjectName, $addCreditUnit, $programID, $addYearLevel])) {
+            $stmtInsert = $conn->prepare("INSERT INTO curriculums (CourseID, SubjectArea, CatalogNo, SubjectName, Units, ProgramID, YearLevel, Semester) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+            if ($stmtInsert->execute([$addCourseID, $addSubjectArea, $addCatalogNo, $addSubjectName, $addUnits, $programID, $addYearLevel, $addSemester])) {
                 $addSuccess = true;
                 echo '<div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert" id="message">
                             <strong class="font-bold">Success!</strong>
@@ -123,9 +132,14 @@ if (isset($_POST['btnAdd'])) {
 if (isset($_POST['btnEdit'])) {
     $editCurriculumID = trim($_POST['editCurriculumID']);
     $editSubjectName = trim($_POST['editSubjectName']);
-    $editCreditUnit = trim($_POST['editCreditUnit']);
+    $editUnits = trim($_POST['editUnits']);
+    $editCourseID = isset($_POST['editCourseID']) ? trim($_POST['editCourseID']) : null;
+    $editSubjectArea = isset($_POST['editSubjectArea']) ? trim($_POST['editSubjectArea']) : null;
+    $editCatalogNo = isset($_POST['editCatalogNo']) ? trim($_POST['editCatalogNo']) : null;
+    $editUnits = isset($_POST['editUnits']) ? trim($_POST['editUnits']) : null;
     $editProgramName = trim($_POST['editProgramName']);
     $editYearLevel = trim($_POST['editYearLevel']);
+    $editSemester = isset($_POST['editSemester']) ? trim($_POST['editSemester']) : null;
 
     // Lookup ProgramID
     $stmt = $conn->prepare("SELECT ProgramID FROM programs WHERE ProgramName = ?");
@@ -136,16 +150,16 @@ if (isset($_POST['btnEdit'])) {
         $programID = $program['ProgramID'];
 
         // Check for duplicate curriculum with same subject, year, credit unit, and program excluding current record
-        $stmtCheck = $conn->prepare("SELECT CurriculumID FROM curriculums WHERE SubjectName = ? AND Year = ? AND CreditUnit = ? AND ProgramID = ? AND CurriculumID != ?");
-        $stmtCheck->execute([$editSubjectName, $editYearLevel, $editCreditUnit, $programID, $editCurriculumID]);
+        $stmtCheck = $conn->prepare("SELECT CurriculumID FROM curriculums WHERE SubjectName = ? AND YearLevel = ? AND Units = ? AND ProgramID = ? AND CurriculumID != ?");
+        $stmtCheck->execute([$editSubjectName, $editYearLevel, $editUnits, $programID, $editCurriculumID]);
         if ($stmtCheck->fetch()) {
             echo '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert" id="message">
                     <strong class="font-bold">Error!</strong>
                     <span class="block sm:inline">Curriculum with the same subject, year, credit unit, and program already exists.</span>
                 </div>';
         } else {
-            $stmtUpdate = $conn->prepare("UPDATE curriculums SET SubjectName = ?, CreditUnit = ?, ProgramID = ?, Year = ? WHERE CurriculumID = ?");
-            if ($stmtUpdate->execute([$editSubjectName, $editCreditUnit, $programID, $editYearLevel, $editCurriculumID])) {
+            $stmtUpdate = $conn->prepare("UPDATE curriculums SET CourseID = ?, SubjectArea = ?, CatalogNo = ?, SubjectName = ?, Units = ?, ProgramID = ?, YearLevel = ?, Semester = ? WHERE CurriculumID = ?");
+            if ($stmtUpdate->execute([$editCourseID, $editSubjectArea, $editCatalogNo, $editSubjectName, $editUnits, $programID, $editYearLevel, $editSemester, $editCurriculumID])) {
                 echo '<div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert" id="message">
                         <strong class="font-bold">Success!</strong>
                         <span class="block sm:inline">Curriculum updated successfully!</span>
@@ -241,7 +255,7 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == '1') {
     }
 
     if (!empty($yearFilter)) {
-        $whereClauses[] = "c.Year = ?";
+        $whereClauses[] = "c.YearLevel = ?";
         $queryParams[] = $yearFilter;
     }
 
@@ -253,8 +267,8 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == '1') {
                 $keywordClause = [];
                 $keyword = strtolower($keyword); // pre-lowercase to reduce repeated calls
                 $keywordClause[] = "LOWER(c.SubjectName) LIKE LOWER(?)";
-                $keywordClause[] = "LOWER(c.CreditUnit) LIKE LOWER(?)";
-                $keywordClause[] = "LOWER(c.Year) LIKE LOWER(?)";
+                $keywordClause[] = "LOWER(c.Units) LIKE LOWER(?)";
+                $keywordClause[] = "LOWER(c.YearLevel) LIKE LOWER(?)";
                 $keywordClause[] = "LOWER(p.ProgramName) LIKE LOWER(?)";
                 // Group OR conditions for this keyword
                 $keywordClauses[] = '(' . implode(' OR ', $keywordClause) . ')';
@@ -277,12 +291,12 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == '1') {
     if (!empty($programFilter) || !empty($yearFilter)) {
         // Use existing filtering logic with program and year filters
         if ($programIDFilter !== null || !empty($search)) {
-            $sql = "SELECT c.CurriculumID, c.SubjectName, c.CreditUnit, c.Year, p.ProgramName
-                FROM curriculums c
-                JOIN programs p ON c.ProgramID = p.ProgramID
-                $whereString
-                ORDER BY c.CurriculumID ASC
-                LIMIT ?, ?";
+            $sql = "SELECT c.CurriculumID, c.SubjectName, c.Units, c.YearLevel, p.ProgramName
+            FROM curriculums c
+            JOIN programs p ON c.ProgramID = p.ProgramID
+            $whereString
+            ORDER BY c.CurriculumID ASC
+            LIMIT ?, ?";
 
 
             $stmt = $conn->prepare($sql);
@@ -311,8 +325,9 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == '1') {
                 foreach ($data as $curriculum) {
                     $html .= '<tr>';
                     $html .= '<td class="px-4 py-2 whitespace-nowrap">' . htmlspecialchars($curriculum['SubjectName']) . '</td>';
-                    $html .= '<td class="px-4 py-2 whitespace-nowrap">' . htmlspecialchars($curriculum['CreditUnit']) . '</td>';
-                    $html .= '<td class="px-4 py-2 whitespace-nowrap">' . htmlspecialchars($curriculum['Year']) . '</td>';
+                    $html .= '<td class="px-4 py-2 whitespace-nowrap">' . htmlspecialchars($curriculum['Units']) . '</td>';
+                    $html .= '<td class="px-4 py-2 whitespace-nowrap">' . htmlspecialchars($curriculum['YearLevel']) . '</td>';
+                    $html .= '<td class="px-4 py-2 whitespace-nowrap">' . htmlspecialchars($curriculum['Semester']) . '</td>';
                     $html .= '<td class="px-4 py-2 whitespace-nowrap">' . htmlspecialchars($curriculum['ProgramName']) . '</td>';
                     $html .= '<td class="px-4 py-2 whitespace-nowrap text-center space-x-2">';
                     $html .= '<button class="text-blue-600 hover:text-blue-900 edit-btn" data-subject="' . htmlspecialchars($curriculum['SubjectName']) . '">Edit</button>';
@@ -340,7 +355,7 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == '1') {
             $queryParamsSearch = [];
             foreach ($searchKeywords as $keyword) {
                 $likeClauses[] = "LOWER(c.SubjectName) LIKE LOWER(?)";
-                $likeClauses[] = "LOWER(c.CreditUnit) LIKE LOWER(?)";
+                $likeClauses[] = "LOWER(c.Units) LIKE LOWER(?)";
                 $likeClauses[] = "LOWER(c.Year) LIKE LOWER(?)";
                 $likeClauses[] = "LOWER(p.ProgramName) LIKE LOWER(?)";
                 $queryParamsSearch[] = '%' . strtolower($keyword) . '%';
@@ -350,7 +365,7 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == '1') {
             }
             $whereStringSearch = '(' . implode(' OR ', $likeClauses) . ')';
 
-            $sqlSearch = "SELECT c.CurriculumID, c.SubjectName, c.CreditUnit, c.Year, p.ProgramName
+            $sqlSearch = "SELECT c.CurriculumID, c.SubjectName, c.Unit, c.Year, p.ProgramName
                       FROM curriculums c
                       JOIN programs p ON c.ProgramID = p.ProgramID
                       WHERE " . $whereStringSearch . "
@@ -378,8 +393,8 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == '1') {
                 foreach ($data as $curriculum) {
                     $html .= '<tr>';
                     $html .= '<td class="px-4 py-2 whitespace-nowrap">' . htmlspecialchars($curriculum['SubjectName']) . '</td>';
-                    $html .= '<td class="px-4 py-2 whitespace-nowrap">' . htmlspecialchars($curriculum['CreditUnit']) . '</td>';
-                    $html .= '<td class="px-4 py-2 whitespace-nowrap">' . htmlspecialchars($curriculum['Year']) . '</td>';
+                    $html .= '<td class="px-4 py-2 whitespace-nowrap">' . htmlspecialchars($curriculum['Units']) . '</td>';
+                    $html .= '<td class="px-4 py-2 whitespace-nowrap">' . htmlspecialchars($curriculum['YearLevel']) . '</td>';
                     $html .= '<td class="px-4 py-2 whitespace-nowrap">' . htmlspecialchars($curriculum['ProgramName']) . '</td>';
                     $html .= '<td class="px-4 py-2 whitespace-nowrap text-center space-x-2">';
                     $html .= '<button class="text-blue-600 hover:text-blue-900 edit-btn" data-subject="' . htmlspecialchars($curriculum['SubjectName']) . '">Edit</button>';
@@ -415,6 +430,8 @@ $offset = max(0, ($currentPage - 1) * $rowsPerPage);
 $programFilter = isset($_GET['program']) ? $_GET['program'] : '';
 $yearFilter = isset($_GET['year']) ? $_GET['year'] : '';
 $search = isset($_GET['search']) ? $_GET['search'] : '';
+$semesterFilter = isset($_GET['semester']) ? $_GET['semester'] : '';
+$unitsFilter = isset($_GET['units']) ? $_GET['units'] : '';
 
 $whereClauses = [];
 $queryParams = [];
@@ -436,8 +453,18 @@ if (!empty($programFilter)) {
 }
 
 if (!empty($yearFilter)) {
-    $whereClauses[] = "c.Year = ?";
+    $whereClauses[] = "c.YearLevel = ?";
     $queryParams[] = $yearFilter;
+}
+
+if (!empty($semesterFilter)) {
+    $whereClauses[] = "c.Semester = ?";
+    $queryParams[] = $semesterFilter;
+}
+
+if (!empty($unitsFilter)) {
+    $whereClauses[] = "c.Units = ?";
+    $queryParams[] = $unitsFilter;
 }
 
 if (!empty($search)) {
@@ -448,8 +475,8 @@ if (!empty($search)) {
             $keywordClause = [];
             $keyword = strtolower($keyword); // pre-lowercase to reduce repeated calls
             $keywordClause[] = "LOWER(c.SubjectName) LIKE LOWER(?)";
-            $keywordClause[] = "LOWER(c.CreditUnit) LIKE LOWER(?)";
-            $keywordClause[] = "LOWER(c.Year) LIKE LOWER(?)";
+            $keywordClause[] = "LOWER(c.Units) LIKE LOWER(?)";
+            $keywordClause[] = "LOWER(c.YearLevel) LIKE LOWER(?)";
             $keywordClause[] = "LOWER(p.ProgramName) LIKE LOWER(?)";
             // Group OR conditions for this keyword
             $keywordClauses[] = '(' . implode(' OR ', $keywordClause) . ')';
@@ -469,12 +496,12 @@ if (!empty($search)) {
 $whereString = !empty($whereClauses) ? "WHERE " . implode(" AND ", $whereClauses) : "";
 
 if (empty($programFilter) || $programIDFilter !== null) {
-    $sql = "SELECT c.CurriculumID, c.SubjectName, c.CreditUnit, c.Year, p.ProgramName
-            FROM curriculums c
-            JOIN programs p ON c.ProgramID = p.ProgramID
-            " . $whereString . "
-            ORDER BY c.CurriculumID ASC
-            LIMIT ?, ?";
+    $sql = "SELECT c.CurriculumID, c.SubjectName, c.Units, c.YearLevel, c.Semester, p.ProgramName
+        FROM curriculums c
+        JOIN programs p ON c.ProgramID = p.ProgramID
+        " . $whereString . "
+        ORDER BY c.CurriculumID ASC
+        LIMIT ?, ?";
     $stmt = $conn->prepare($sql);
 
     try {
@@ -513,7 +540,7 @@ if (empty($programFilter) || $programIDFilter !== null) {
 }
 
 // Fetch all unique year levels for the filter
-$stmtYears = $conn->prepare("SELECT DISTINCT Year FROM curriculums ORDER BY Year");
+$stmtYears = $conn->prepare("SELECT DISTINCT YearLevel FROM curriculums ORDER BY YearLevel");
 $stmtYears->execute();
 $yearLevels = $stmtYears->fetchAll(PDO::FETCH_COLUMN);
 
