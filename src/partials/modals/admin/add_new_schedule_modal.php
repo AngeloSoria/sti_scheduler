@@ -1,12 +1,13 @@
 <?php
 
-// require_once __DIR__ . '/../../dashboard_pages/admin/functions/func_schedules.php';
+require_once __DIR__ . '/../../dashboard_pages/admin/functions/func_schedules.php';
 
-// Handle AJAX request for preferred subjects by FacultyID
+// Handle AJAX request for preferred subjects by FacultyID and Semester
 if (isset($_GET['action']) && $_GET['action'] === 'getPreferredSubjects' && isset($_GET['facultyId'])) {
     header('Content-Type: application/json');
     $facultyId = $_GET['facultyId'];
-    $preferredSubjects = getPreferredSubjectsByFaculty($facultyId);
+    $semester = isset($_GET['semester']) ? $_GET['semester'] : getActiveSemesterValue();
+    $preferredSubjects = getPreferredSubjectsByFaculty($facultyId, $semester);
     echo json_encode($preferredSubjects);
     exit;
 }
@@ -42,6 +43,22 @@ $rooms = getRooms();
                         class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"
                         role="alert"></div>
                     <div class="mb-4">
+                        <label for="addSectionID" class="block text-gray-700 text-sm font-bold mb-2">
+                            Section:
+                            <span class="text-red-500">*</span>
+                        </label>
+                        <select name="addSectionID" id="addSectionID" required
+                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                            <option value="" disabled selected>Select a Section</option>
+                            <?php foreach ($sections as $section): ?>
+                                <option value="<?php echo htmlspecialchars($section['SectionID']); ?>"
+                                    data-programid="<?php echo htmlspecialchars($section['ProgramID'] ?? ''); ?>">
+                                    <?php echo htmlspecialchars($section['SectionName']); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="mb-4">
                         <label for="addFacultyID" class="block text-gray-700 text-sm font-bold mb-2">
                             Faculty:
                             <span class="text-red-500">*</span>
@@ -50,7 +67,8 @@ $rooms = getRooms();
                             class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                             <option value="" disabled selected>Select a Faculty</option>
                             <?php foreach ($faculties as $faculty): ?>
-                                <option value="<?php echo htmlspecialchars($faculty['FacultyID']); ?>">
+                                <option value="<?php echo htmlspecialchars($faculty['FacultyID']); ?>"
+                                    data-programid="<?php echo htmlspecialchars($faculty['ProgramID'] ?? ''); ?>">
                                     <?php echo htmlspecialchars($faculty['FirstName'] . ' ' . $faculty['LastName']); ?>
                                 </option>
                             <?php endforeach; ?>
@@ -65,6 +83,21 @@ $rooms = getRooms();
                             class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                             <option value="" disabled selected>Select a Subject</option>
                             <!-- Options to be populated dynamically based on selected faculty -->
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label for="addRoomID" class="block text-gray-700 text-sm font-bold mb-2">
+                            Room:
+                            <span class="text-red-500">*</span>
+                        </label>
+                        <select name="addRoomID" id="addRoomID" required
+                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                            <option value="" disabled selected>Select a Room</option>
+                            <?php foreach ($rooms as $room): ?>
+                                <option value="<?php echo htmlspecialchars($room['RoomID']); ?>">
+                                    <?php echo htmlspecialchars($room['RoomName']); ?>
+                                </option>
+                            <?php endforeach; ?>
                         </select>
                     </div>
                     <div class="mb-4">
@@ -84,36 +117,6 @@ $rooms = getRooms();
                                 </label>
                             <?php endforeach; ?>
                         </div>
-                    </div>
-                    <div class="mb-4">
-                        <label for="addRoomID" class="block text-gray-700 text-sm font-bold mb-2">
-                            Room:
-                            <span class="text-red-500">*</span>
-                        </label>
-                        <select name="addRoomID" id="addRoomID" required
-                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                            <option value="" disabled selected>Select a Room</option>
-                            <?php foreach ($rooms as $room): ?>
-                                <option value="<?php echo htmlspecialchars($room['RoomID']); ?>">
-                                    <?php echo htmlspecialchars($room['RoomName']); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <div class="mb-4">
-                        <label for="addSectionID" class="block text-gray-700 text-sm font-bold mb-2">
-                            Section:
-                            <span class="text-red-500">*</span>
-                        </label>
-                        <select name="addSectionID" id="addSectionID" required
-                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                            <option value="" disabled selected>Select a Section</option>
-                            <?php foreach ($sections as $section): ?>
-                                <option value="<?php echo htmlspecialchars($section['SectionID']); ?>">
-                                    <?php echo htmlspecialchars($section['SectionName']); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
                     </div>
                     <div class="mb-6 flex gap-4">
                         <div class="flex-1">
@@ -147,7 +150,8 @@ $rooms = getRooms();
                 </form>
 
                 <script>
-                    // Fetch and populate preferred subjects based on selected faculty
+                    // Fetch and populate preferred subjects based on selected faculty and active semester
+                    const activeSemesterID = <?php echo json_encode(getActiveSchoolYearSemesterID()); ?>;
                     document.getElementById('addFacultyID').addEventListener('change', function () {
                         const facultyId = this.value;
                         const curriculumSelect = document.getElementById('addCurriculumID');
@@ -157,7 +161,7 @@ $rooms = getRooms();
                             return;
                         }
 
-                        fetch('/src/partials/dashboard_pages/admin/ajax_schedule_handler.php?action=getPreferredSubjects&facultyId=' + facultyId)
+                        fetch('/src/partials/modals/admin/add_new_schedule_modal.php?action=getPreferredSubjects&facultyId=' + facultyId + '&semester=' + activeSemesterID)
                             .then(response => response.json())
                             .then(data => {
                                 curriculumSelect.innerHTML = '';
@@ -254,7 +258,7 @@ $rooms = getRooms();
             return;
         }
 
-        fetch('/src/partials/dashboard_pages/admin/ajax_schedule_handler.php?action=getPreferredSubjects&facultyId=' + facultyId)
+        fetch('/src/partials/modals/admin/add_new_schedule_modal.php?action=getPreferredSubjects&facultyId=' + facultyId)
             .then(response => response.json())
             .then(data => {
                 curriculumSelect.innerHTML = '';
@@ -273,6 +277,41 @@ $rooms = getRooms();
                 console.error('Error fetching preferred subjects:', error);
                 curriculumSelect.innerHTML = '<option value="" disabled selected>Error loading subjects</option>';
             });
+    });
+
+    // Filter faculty options based on selected section's ProgramID
+    document.getElementById('addSectionID').addEventListener('change', function () {
+        const selectedSection = this.options[this.selectedIndex];
+        const programId = selectedSection.getAttribute('data-programid');
+        const facultySelect = document.getElementById('addFacultyID');
+
+        for (let i = 0; i < facultySelect.options.length; i++) {
+            const option = facultySelect.options[i];
+            const optionProgramId = option.getAttribute('data-programid');
+            if (!programId || option.value === "" || optionProgramId === programId) {
+                option.style.display = '';
+            } else {
+                option.style.display = 'none';
+            }
+        }
+
+        // Reset faculty selection if current selection is not valid
+        if (facultySelect.selectedIndex !== -1) {
+            const selectedFacultyOption = facultySelect.options[facultySelect.selectedIndex];
+            if (selectedFacultyOption.style.display === 'none') {
+                facultySelect.selectedIndex = 0; // Select the placeholder option
+                // Trigger change event to clear subjects
+                facultySelect.dispatchEvent(new Event('change'));
+            }
+        }
+    });
+
+    // Trigger change event on page load to apply initial filtering if needed
+    document.addEventListener('DOMContentLoaded', function () {
+        const sectionSelect = document.getElementById('addSectionID');
+        if (sectionSelect.value) {
+            sectionSelect.dispatchEvent(new Event('change'));
+        }
     });
 </script>
 <style>

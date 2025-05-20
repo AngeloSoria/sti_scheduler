@@ -1,6 +1,10 @@
 <?php
 
 require_once __DIR__ . '/functions/func_schedules.php';
+
+$sections = getSections();
+$faculties = getFaculties();
+
 // Prepare filter display text for print header
 // Find faculty full name by ID
 $facultyName = '';
@@ -37,8 +41,102 @@ if (!empty($sectionName)) {
 if (!empty($search)) {
     $filterTexts[] = 'Search: ' . htmlspecialchars($search);
 }
-?>
 
+$activeSchoolYearSemesterID = getActiveSchoolYearSemesterID();
+
+$whereClauses = [];
+$queryParams = [];
+
+if (!empty($facultyFilter)) {
+    $whereClauses[] = "s.FacultyID = ?";
+    $queryParams[] = $facultyFilter;
+}
+
+if (!empty($dayFilter)) {
+    $whereClauses[] = "s.Day = ?";
+    $queryParams[] = $dayFilter;
+}
+
+if (!empty($sectionFilter)) {
+    $whereClauses[] = "s.SectionID = ?";
+    $queryParams[] = $sectionFilter;
+}
+
+if ($activeSchoolYearSemesterID !== null) {
+    $whereClauses[] = "s.SchoolYearSemesterID = ?";
+    $queryParams[] = $activeSchoolYearSemesterID;
+}
+
+if (!empty($search)) {
+    $searchKeywords = preg_split('/\s+/', $search, -1, PREG_SPLIT_NO_EMPTY);
+    if (!empty($searchKeywords)) {
+        $keywordClauses = [];
+        foreach ($searchKeywords as $keyword) {
+            $keyword = strtolower($keyword);
+            $keywordClauses[] = "LOWER(c.SubjectName) LIKE LOWER(?)";
+            $keywordClauses[] = "LOWER(CONCAT(u.FirstName, ' ', u.LastName)) LIKE LOWER(?)";
+            $keywordClauses[] = "LOWER(s.Day) LIKE LOWER(?)";
+            $keywordClauses[] = "LOWER(r.RoomName) LIKE LOWER(?)";
+            $keywordClauses[] = "LOWER(sec.SectionName) LIKE LOWER(?)";
+            $queryParams[] = '%' . $keyword . '%';
+            $queryParams[] = '%' . $keyword . '%';
+            $queryParams[] = '%' . $keyword . '%';
+            $queryParams[] = '%' . $keyword . '%';
+            $queryParams[] = '%' . $keyword . '%';
+        }
+        $whereClauses[] = '(' . implode(' OR ', $keywordClauses) . ')';
+    }
+}
+
+$whereString = !empty($whereClauses) ? "WHERE " . implode(" AND ", $whereClauses) : "";
+
+try {
+    $db = new Database();
+    $conn = $db->getConnection();
+
+    // Get total count for pagination
+    $countSql = "SELECT COUNT(*) FROM schedules s
+                 JOIN curriculums c ON s.CurriculumID = c.CurriculumID
+                 JOIN facultymembers fm ON s.FacultyID = fm.FacultyID
+                 JOIN users u ON fm.UserID = u.UserID
+                 JOIN rooms r ON s.RoomID = r.RoomID
+                 JOIN sections sec ON s.SectionID = sec.SectionID
+                 $whereString";
+    $stmtCount = $conn->prepare($countSql);
+    $stmtCount->execute($queryParams);
+    $totalRows = $stmtCount->fetchColumn();
+    $totalPages = ceil($totalRows / $rowsPerPage);
+
+    if ($totalRows > 0) {
+        $sql = "SELECT s.ScheduleID, c.SubjectName, CONCAT(u.FirstName, ' ', u.LastName) AS FacultyName, s.Day, s.StartTime, s.EndTime, r.RoomName, sec.SectionName, s.RoomID, s.SectionID
+                FROM schedules s
+                JOIN curriculums c ON s.CurriculumID = c.CurriculumID
+                JOIN facultymembers fm ON s.FacultyID = fm.FacultyID
+                JOIN users u ON fm.UserID = u.UserID
+                JOIN rooms r ON s.RoomID = r.RoomID
+                JOIN sections sec ON s.SectionID = sec.SectionID
+                $whereString
+ORDER BY sec.SectionName ASC, FIELD(s.Day, 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'), s.StartTime ASC
+                LIMIT ? OFFSET ?";
+        $stmt = $conn->prepare($sql);
+        $paramIndex = 1;
+        foreach ($queryParams as $param) {
+            $stmt->bindValue($paramIndex++, $param);
+        }
+        $stmt->bindValue($paramIndex++, $rowsPerPage, PDO::PARAM_INT);
+        $stmt->bindValue($paramIndex++, $offset, PDO::PARAM_INT);
+        $stmt->execute();
+        $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } else {
+        $data = [];
+    }
+} catch (PDOException $e) {
+    $data = [];
+    $totalRows = 0;
+    $totalPages = 0;
+}
+
+?>
 <style>
     /* Print styles */
     @media print {
@@ -147,53 +245,53 @@ if (!empty($search)) {
 </script>
 
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    const exportCSVBtn = document.getElementById('exportCSVBtn');
-    if (exportCSVBtn) {
-        exportCSVBtn.addEventListener('click', function () {
-            const table = document.querySelector('table.min-w-full');
-            if (!table) return;
+    document.addEventListener('DOMContentLoaded', function () {
+        const exportCSVBtn = document.getElementById('exportCSVBtn');
+        if (exportCSVBtn) {
+            exportCSVBtn.addEventListener('click', function () {
+                const table = document.querySelector('table.min-w-full');
+                if (!table) return;
 
-            let csvContent = '';
-            const rows = table.querySelectorAll('thead tr, tbody tr');
+                let csvContent = '';
+                const rows = table.querySelectorAll('thead tr, tbody tr');
 
-            rows.forEach(row => {
-                // Only include visible rows
-                if (row.offsetParent === null) return;
+                rows.forEach(row => {
+                    // Only include visible rows
+                    if (row.offsetParent === null) return;
 
-                const cols = row.querySelectorAll('th, td');
-                let rowData = [];
-                // Exclude the last column (Actions)
-                const colsToProcess = Array.from(cols).slice(0, -1);
-                colsToProcess.forEach(col => {
-                    // Only include visible columns
-                    if (col.offsetParent === null) return;
-                    // Escape double quotes by doubling them
-                    let cellText = col.textContent.trim().replace(/"/g, '""');
-                    // Wrap cell text in double quotes
-                    rowData.push(`"${cellText}"`);
+                    const cols = row.querySelectorAll('th, td');
+                    let rowData = [];
+                    // Exclude the last column (Actions)
+                    const colsToProcess = Array.from(cols).slice(0, -1);
+                    colsToProcess.forEach(col => {
+                        // Only include visible columns
+                        if (col.offsetParent === null) return;
+                        // Escape double quotes by doubling them
+                        let cellText = col.textContent.trim().replace(/"/g, '""');
+                        // Wrap cell text in double quotes
+                        rowData.push(`"${cellText}"`);
+                    });
+                    csvContent += rowData.join(',') + '\r\n';
                 });
-                csvContent += rowData.join(',') + '\r\n';
-            });
 
-            // Create a Blob with CSV data and trigger download
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            // Add current date to filename in year-month-day format
-            const date = new Date();
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            a.download = `schedules_export_${year}-${month}-${day}.csv`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        });
-    }
-});
+                // Create a Blob with CSV data and trigger download
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                // Add current date to filename in year-month-day format
+                const date = new Date();
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                a.download = `schedules_export_${year}-${month}-${day}.csv`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            });
+        }
+    });
 </script>
 
 <div class="print-header">
@@ -435,15 +533,26 @@ document.addEventListener('DOMContentLoaded', function () {
 
         function openModal(modal) {
             if (modal) {
+                console.log('Opening modal:', modal.id);
                 modal.classList.remove('opacity-0', 'pointer-events-none');
                 modal.classList.add('opacity-100', 'pointer-events-auto');
+                modal.setAttribute('aria-hidden', 'false');
+                // Set focus to the modal for accessibility
+                modal.focus();
             }
         }
 
         function closeModal(modal) {
             if (modal) {
+                console.log('Closing modal:', modal.id);
                 modal.classList.remove('opacity-100', 'pointer-events-auto');
                 modal.classList.add('opacity-0', 'pointer-events-none');
+                modal.setAttribute('aria-hidden', 'true');
+                // Return focus to the add button after closing
+                const addNewBtn = document.getElementById('addNewBtn');
+                if (addNewBtn) {
+                    addNewBtn.focus();
+                }
             }
         }
 

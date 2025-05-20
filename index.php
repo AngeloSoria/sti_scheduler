@@ -49,7 +49,8 @@ $router->add('/dashboard', function () {
             'sections',
             'departments',
             'rooms',
-            'users'
+            'users',
+            'school_year_semesters'
         ],
         'faculty' => [
             'my_schedule'

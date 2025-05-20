@@ -4,27 +4,28 @@
     $view = $_GET['view'] ?? null;
     if ($view) {
         // Role validation: if page is curriculums and role is not admin, redirect to home
-        if ($view === 'curriculums' && $_SESSION['user']['role'] !== 'admin') {
+        if ($_SESSION['user']['role'] !== 'admin') {
             header("Location: /");
             exit();
         }
         // Sanitize the page parameter to prevent directory traversal
         // $view = str_replace(['..', '/', '\\'], '', $view);
         // $partialPath = dirname(__DIR__) . 'partials' . DIRECTORY_SEPARATOR . 'dashboard_pages' . DIRECTORY_SEPARATOR . $_SESSION['user']['role'] . DIRECTORY_SEPARATOR . "$view.php";
-        $partialPath = __DIR__ . '../../' . $_SESSION['user']['role'] . '/' . $view . '.php';
+        $partialPath = realpath(__DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . $_SESSION['user']['role'] . DIRECTORY_SEPARATOR . $view . '.php');
+
         if (file_exists($partialPath)) {
             include $partialPath;
         } else {
+            var_dump($partialPath);
             include __DIR__ . '../../404.php';
         }
     } else {
         // Default content if no page parameter
-    
-        require_once __DIR__ . '../functions/func_users.php';
-        require_once __DIR__ . '../functions/func_schedules.php';
-        require_once __DIR__ . '../functions/func_programs.php';
-        require_once __DIR__ . '../functions/func_curriculums.php';
-        require_once __DIR__ . '../functions/func_rooms.php';
+        require_once __DIR__ . '/functions/func_users.php';
+        require_once __DIR__ . '/functions/func_schedules.php';
+        require_once __DIR__ . '/functions/func_programs.php';
+        require_once __DIR__ . '/functions/func_curriculums.php';
+        require_once __DIR__ . '/functions/func_rooms.php';
 
         function getUserCount()
         {

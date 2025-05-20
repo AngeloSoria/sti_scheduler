@@ -36,9 +36,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         <?php
         if ($userRole === 'faculty') {
-            include_once __DIR__ . '/../partials/dashboard_pages/faculty/my_schedule.php';
+            include_once __DIR__ . '../../partials/dashboard_pages/faculty/my_schedule.php';
         } elseif ($userRole === 'admin') {
-            include_once __DIR__ . '/../partials/dashboard_pages/admin/admin_dashboard.php';
+            include_once __DIR__ . '../../partials/dashboard_pages/admin/admin_dashboard.php';
         } else {
             echo "Unauthorized access.";
         }

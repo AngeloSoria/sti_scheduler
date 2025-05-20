@@ -7,13 +7,46 @@ require_once __DIR__ . '/../../../../../config/dbConnection.php';
 $db = new Database();
 $conn = $db->getConnection();
 
-function getPreferredSubjectsByFaculty($facultyId)
+function getActiveSchoolYearSemesterID()
 {
     try {
         $db = new Database();
         $conn = $db->getConnection();
-        $stmt = $conn->prepare("SELECT c.CurriculumID, c.SubjectName FROM preferredsubjects p JOIN curriculums c ON p.CurriculumID = c.CurriculumID WHERE p.FacultyID = ? ORDER BY c.SubjectName ASC");
-        $stmt->execute([$facultyId]);
+        $stmt = $conn->prepare("SELECT ID FROM school_year_semesters WHERE IsActive = 1 LIMIT 1");
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result ? $result['ID'] : null;
+    } catch (PDOException $e) {
+        return null;
+    }
+}
+
+function getActiveSemesterValue()
+{
+    try {
+        $db = new Database();
+        $conn = $db->getConnection();
+        $stmt = $conn->prepare("SELECT Semester FROM school_year_semesters WHERE IsActive = 1 LIMIT 1");
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result ? $result['Semester'] : null;
+    } catch (PDOException $e) {
+        return null;
+    }
+}
+
+function getPreferredSubjectsByFaculty($facultyId, $semesterValue = null)
+{
+    try {
+        $db = new Database();
+        $conn = $db->getConnection();
+        if ($semesterValue !== null) {
+            $stmt = $conn->prepare("SELECT c.CurriculumID, c.SubjectName FROM preferredsubjects p JOIN curriculums c ON p.CurriculumID = c.CurriculumID WHERE p.FacultyID = ? AND c.Semester = ? ORDER BY c.SubjectName ASC");
+            $stmt->execute([$facultyId, $semesterValue]);
+        } else {
+            $stmt = $conn->prepare("SELECT c.CurriculumID, c.SubjectName FROM preferredsubjects p JOIN curriculums c ON p.CurriculumID = c.CurriculumID WHERE p.FacultyID = ? ORDER BY c.SubjectName ASC");
+            $stmt->execute([$facultyId]);
+        }
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
         return [];
@@ -24,17 +57,43 @@ function getRooms()
 {
     try {
         $db = new Database();
-        $dbConn = $db->getConnection();
-        $stmt = $dbConn->prepare("SELECT * FROM rooms ORDER BY RoomName ASC");
+        $conn = $db->getConnection();
+        $stmt = $conn->prepare("SELECT * FROM rooms ORDER BY RoomName ASC");
         $stmt->execute();
-        return $stmt->fetchAll($dbConn::FETCH_ASSOC);
+        return $stmt->fetchAll($conn::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        return [];
+    }
+}
+
+function getFaculties()
+{
+    try {
+        $db = new Database();
+        $conn = $db->getConnection();
+        $stmt = $conn->prepare("SELECT fm.FacultyID, u.FirstName, u.LastName, fm.ProgramID FROM facultymembers fm JOIN users u ON fm.UserID = u.UserID ORDER BY u.LastName ASC, u.FirstName ASC");
+        $stmt->execute();
+        return $stmt->fetchAll($conn::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        return [];
+    }
+}
+
+function getSections()
+{
+    try {
+        $db = new Database();
+        $conn = $db->getConnection();
+        $stmt = $conn->prepare("SELECT SectionID, SectionName, ProgramID FROM sections ORDER BY SectionName ASC");
+        $stmt->execute();
+        return $stmt->fetchAll($conn::FETCH_ASSOC);
     } catch (PDOException $e) {
         return [];
     }
 }
 
 // New function to check schedule conflicts
-function isScheduleConflicting($roomID, $days, $startTime, $endTime, $facultyID = null, $excludeScheduleID = null)
+function isScheduleConflicting($roomID, $days, $startTime, $endTime, $facultyID = null, $excludeScheduleID = null, $sectionID = null)
 {
     // If no days provided, there can't be a conflict
     if (empty($days)) {
@@ -44,12 +103,14 @@ function isScheduleConflicting($roomID, $days, $startTime, $endTime, $facultyID 
     $db = new Database();
     $conn = $db->getConnection();
 
+    $activeSchoolYearSemesterID = getActiveSchoolYearSemesterID();
+
     $conflicting_schedules_count = 0;
 
     // [Conflict #1] Duplicate schedule for the same room and time.
     $placeholders = implode(',', array_fill(0, count($days), '?'));
-    $sql = "SELECT COUNT(*) FROM schedules WHERE RoomID = ? AND Day IN ($placeholders) AND (StartTime < ? AND EndTime > ?)";
-    $params = array_merge([$roomID], $days, [$endTime, $startTime]);
+    $sql = "SELECT COUNT(*) FROM schedules WHERE RoomID = ? AND Day IN ($placeholders) AND (StartTime < ? AND EndTime > ?) AND SchoolYearSemesterID = ?";
+    $params = array_merge([$roomID], $days, [$endTime, $startTime, $activeSchoolYearSemesterID]);
     if ($excludeScheduleID !== null) {
         $sql .= " AND ScheduleID != ?";
         $params[] = $excludeScheduleID;
@@ -61,8 +122,22 @@ function isScheduleConflicting($roomID, $days, $startTime, $endTime, $facultyID 
     // [Conflict #2] Duplicate schedule for the same faculty and time.
     if ($facultyID !== null) {
         $placeholders = implode(',', array_fill(0, count($days), '?'));
-        $sql = "SELECT COUNT(*) FROM schedules WHERE FacultyID = ? AND Day IN ($placeholders) AND (StartTime < ? AND EndTime > ?)";
-        $params = array_merge([$facultyID], $days, [$endTime, $startTime]);
+        $sql = "SELECT COUNT(*) FROM schedules WHERE FacultyID = ? AND Day IN ($placeholders) AND (StartTime < ? AND EndTime > ?) AND SchoolYearSemesterID = ?";
+        $params = array_merge([$facultyID], $days, [$endTime, $startTime, $activeSchoolYearSemesterID]);
+        if ($excludeScheduleID !== null) {
+            $sql .= " AND ScheduleID != ?";
+            $params[] = $excludeScheduleID;
+        }
+        $stmt = $conn->prepare($sql);
+        $stmt->execute($params);
+        $conflicting_schedules_count += $stmt->fetchColumn();
+    }
+
+    // [Conflict #3] Duplicate schedule for the same section and time regardless of room.
+    if ($sectionID !== null) {
+        $placeholders = implode(',', array_fill(0, count($days), '?'));
+        $sql = "SELECT COUNT(*) FROM schedules WHERE SectionID = ? AND Day IN ($placeholders) AND (StartTime < ? AND EndTime > ?) AND SchoolYearSemesterID = ?";
+        $params = array_merge([$sectionID], $days, [$endTime, $startTime, $activeSchoolYearSemesterID]);
         if ($excludeScheduleID !== null) {
             $sql .= " AND ScheduleID != ?";
             $params[] = $excludeScheduleID;
@@ -83,8 +158,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $startTime = isset($_POST['startTime']) ? trim($_POST['startTime']) : '';
             $endTime = isset($_POST['endTime']) ? trim($_POST['endTime']) : '';
             $facultyID = isset($_POST['addFacultyID']) ? trim($_POST['addFacultyID']) : '';
+            $sectionID = isset($_POST['sectionID']) ? intval($_POST['sectionID']) : null;
 
-            $conflict = isScheduleConflicting($roomID, $days, $startTime, $endTime, $facultyID, null);
+            $conflict = isScheduleConflicting($roomID, $days, $startTime, $endTime, $facultyID, null, $sectionID);
             header('Content-Type: application/json');
             echo json_encode(['conflict' => $conflict]);
             exit();
@@ -100,11 +176,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $endTime = isset($_POST['addEndTime']) ? trim($_POST['addEndTime']) : '';
             $facultyID = isset($_POST['addFacultyID']) ? trim($_POST['addFacultyID']) : '';
 
+            $activeSchoolYearSemesterID = getActiveSchoolYearSemesterID();
+
             if ($facultyID > 0 && $curriculumID > 0 && !empty($days) && $roomID > 0 && $sectionID > 0 && !empty($startTime) && !empty($endTime)) {
                 // Check for conflicts for each day
                 $hasConflict = false;
                 foreach ($days as $day) {
-                    if (isScheduleConflicting($roomID, [$day], $startTime, $endTime, $facultyID, null)) {
+                    if (isScheduleConflicting($roomID, [$day], $startTime, $endTime, $facultyID, null, $sectionID)) {
                         $hasConflict = true;
                         break;
                     }
@@ -112,23 +190,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 if ($hasConflict) {
                     echo '<div id="alert-message" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-                    Schedule conflict detected. Please choose a different time or room.
-                  </div>
-                  <script>
-                    setTimeout(function() {
-                        var alertElem = document.getElementById("alert-message");
-                        if (alertElem) {
-                            alertElem.style.display = "none";
-                        }
-                    }, 5000);
-                  </script>';
+    Schedule conflict detected. Please choose a different time, room, or section.
+  </div>
+  <script>
+    setTimeout(function() {
+        var alertElem = document.getElementById("alert-message");
+        if (alertElem) {
+            alertElem.style.display = "none";
+        }
+    }, 5000);
+  </script>';
                 } else {
                     try {
-                        $insertSql = "INSERT INTO schedules (FacultyID, CurriculumID, Day, RoomID, SectionID, StartTime, EndTime) VALUES (?, ?, ?, ?, ?, ?, ?)";
+                        $insertSql = "INSERT INTO schedules (FacultyID, CurriculumID, Day, RoomID, SectionID, StartTime, EndTime, SchoolYearSemesterID) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
                         $stmtInsert = $conn->prepare($insertSql);
 
                         foreach ($days as $day) {
-                            $stmtInsert->execute([$facultyID, $curriculumID, $day, $roomID, $sectionID, $startTime, $endTime]);
+                            $stmtInsert->execute([$facultyID, $curriculumID, $day, $roomID, $sectionID, $startTime, $endTime, $activeSchoolYearSemesterID]);
                         }
 
                         // Redirect to refresh
@@ -173,26 +251,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $endTime = isset($_POST['editEndTime']) ? trim($_POST['editEndTime']) : '';
             $facultyID = isset($_POST['editFacultyName']) ? trim($_POST['editFacultyName']) : '';
 
+            $activeSchoolYearSemesterID = getActiveSchoolYearSemesterID();
+
             if ($scheduleID > 0 && !empty($day) && $roomID > 0 && $sectionID > 0 && !empty($startTime) && !empty($endTime)) {
                 // Convert day string to array for conflict check
                 $daysArray = [$day];
                 // Check for schedule conflict excluding current scheduleID
-                $conflict = isScheduleConflicting($roomID, $daysArray, $startTime, $endTime, $facultyID, $scheduleID);
+                $conflict = isScheduleConflicting($roomID, $daysArray, $startTime, $endTime, $facultyID, $scheduleID, $sectionID);
                 if ($conflict) {
-                    echo '<div id="alert-message" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">Schedule conflict detected. Please choose a different time or room.</div>
-                    <script>
-                        setTimeout(function() {
-                            var alertElem = document.getElementById("alert-message");
-                            if (alertElem) {
-                                alertElem.style.display = "none";
-                            }
-                        }, 5000);
-                    </script>';
+                    echo '<div id="alert-message" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">Schedule conflict detected. Please choose a different time, room, or section.</div>
+    <script>
+        setTimeout(function() {
+            var alertElem = document.getElementById("alert-message");
+            if (alertElem) {
+                alertElem.style.display = "none";
+            }
+        }, 5000);
+    </script>';
                 } else {
                     try {
-                        $updateSql = "UPDATE schedules SET Day = ?, RoomID = ?, SectionID = ?, StartTime = ?, EndTime = ? WHERE ScheduleID = ?";
+                        $updateSql = "UPDATE schedules SET Day = ?, RoomID = ?, SectionID = ?, StartTime = ?, EndTime = ?, SchoolYearSemesterID = ? WHERE ScheduleID = ?";
                         $stmtUpdate = $conn->prepare($updateSql);
-                        $stmtUpdate->execute([$day, $roomID, $sectionID, $startTime, $endTime, $scheduleID]);
+                        $stmtUpdate->execute([$day, $roomID, $sectionID, $startTime, $endTime, $activeSchoolYearSemesterID, $scheduleID]);
 
                         // Redirect to schedules.php with current query parameters to refresh the list
                         $queryParams = [];
@@ -281,113 +361,6 @@ $dayFilter = isset($_GET['day']) ? $_GET['day'] : '';
 $sectionFilter = isset($_GET['section']) ? $_GET['section'] : '';
 $search = isset($_GET['search']) ? $_GET['search'] : '';
 
-$whereClauses = [];
-$queryParams = [];
-
-if (!empty($facultyFilter)) {
-    $whereClauses[] = "s.FacultyID = ?";
-    $queryParams[] = $facultyFilter;
-}
-
-if (!empty($dayFilter)) {
-    $whereClauses[] = "s.Day = ?";
-    $queryParams[] = $dayFilter;
-}
-
-if (!empty($sectionFilter)) {
-    $whereClauses[] = "s.SectionID = ?";
-    $queryParams[] = $sectionFilter;
-}
-
-if (!empty($search)) {
-    $searchKeywords = preg_split('/\s+/', $search, -1, PREG_SPLIT_NO_EMPTY);
-    if (!empty($searchKeywords)) {
-        $keywordClauses = [];
-        foreach ($searchKeywords as $keyword) {
-            $keyword = strtolower($keyword);
-            $keywordClauses[] = "LOWER(c.SubjectName) LIKE LOWER(?)";
-            $keywordClauses[] = "LOWER(CONCAT(u.FirstName, ' ', u.LastName)) LIKE LOWER(?)";
-            $keywordClauses[] = "LOWER(s.Day) LIKE LOWER(?)";
-            $keywordClauses[] = "LOWER(r.RoomName) LIKE LOWER(?)";
-            $keywordClauses[] = "LOWER(sec.SectionName) LIKE LOWER(?)";
-            $queryParams[] = '%' . $keyword . '%';
-            $queryParams[] = '%' . $keyword . '%';
-            $queryParams[] = '%' . $keyword . '%';
-            $queryParams[] = '%' . $keyword . '%';
-            $queryParams[] = '%' . $keyword . '%';
-        }
-        $whereClauses[] = '(' . implode(' OR ', $keywordClauses) . ')';
-    }
-}
-
-$whereString = !empty($whereClauses) ? "WHERE " . implode(" AND ", $whereClauses) : "";
-
-$sql = "SELECT COUNT(*) AS total
-        FROM schedules s
-        JOIN curriculums c ON s.CurriculumID = c.CurriculumID
-        JOIN facultymembers fm ON s.FacultyID = fm.FacultyID
-        JOIN users u ON fm.UserID = u.UserID
-        JOIN rooms r ON s.RoomID = r.RoomID
-        JOIN sections sec ON s.SectionID = sec.SectionID
-        $whereString";
-
-$stmtCount = $conn->prepare($sql);
-$stmtCount->execute($queryParams);
-$row = $stmtCount->fetch(PDO::FETCH_ASSOC);
-$totalRows = $row['total'];
-$totalPages = ceil($totalRows / $rowsPerPage);
-
-if ($totalRows > 0) {
-    $sqlData = "SELECT s.ScheduleID, c.SubjectName, CONCAT(u.FirstName, ' ', u.LastName) AS FacultyName, s.Day, s.StartTime, s.EndTime, r.RoomName, sec.SectionName
-                FROM schedules s
-                JOIN curriculums c ON s.CurriculumID = c.CurriculumID
-                JOIN facultymembers fm ON s.FacultyID = fm.FacultyID
-                JOIN users u ON fm.UserID = u.UserID
-                JOIN rooms r ON s.RoomID = r.RoomID
-                JOIN sections sec ON s.SectionID = sec.SectionID
-                $whereString
-                ORDER BY FIELD(s.Day, 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'), s.StartTime ASC
-                LIMIT ?, ?";
-
-    $stmtData = $conn->prepare($sqlData);
-    $paramIndex = 1;
-    if (!empty($queryParams)) {
-        foreach ($queryParams as $param) {
-            $stmtData->bindValue($paramIndex++, $param);
-        }
-    }
-    $stmtData->bindValue($paramIndex++, $offset, PDO::PARAM_INT);
-    $stmtData->bindValue($paramIndex++, $rowsPerPage, PDO::PARAM_INT);
-    $stmtData->execute();
-    $data = $stmtData->fetchAll(PDO::FETCH_ASSOC);
-} else {
-    $data = [];
-}
-
-// Fetch faculties for filter and modal dropdown
-$stmtFaculties = $conn->prepare("SELECT fm.FacultyID, CONCAT(u.FirstName, ' ', u.LastName) AS FacultyName, u.FirstName, u.LastName FROM facultymembers fm JOIN users u ON fm.UserID = u.UserID ORDER BY u.FirstName, u.LastName");
-$stmtFaculties->execute();
-$faculties = $stmtFaculties->fetchAll(PDO::FETCH_ASSOC);
-
-// Fetch sections for filter and modal dropdown
-$stmtSections = $conn->prepare("SELECT SectionID, SectionName FROM sections ORDER BY SectionName");
-$stmtSections->execute();
-$sections = $stmtSections->fetchAll(PDO::FETCH_ASSOC);
-
-// Days array for filter
-$days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-
-// Get filters from GET
-$facultyFilter = isset($_GET['faculty']) ? $_GET['faculty'] : '';
-$dayFilter = isset($_GET['day']) ? $_GET['day'] : '';
-$sectionFilter = isset($_GET['section']) ? $_GET['section'] : '';
-$search = isset($_GET['search']) ? $_GET['search'] : '';
-$rowsPerPageOptions = [5, 10, 20, 50, 100];
-$rowsPerPage = isset($_GET['rowsPerPage']) && in_array($_GET['rowsPerPage'], $rowsPerPageOptions) ? $_GET['rowsPerPage'] : 10;
-$currentPage = isset($_GET['page']) ? (int) $_GET['page'] : 1;
-$offset = max(0, ($currentPage - 1) * $rowsPerPage);
-
-// Build where clauses and params
 $whereClauses = [];
 $queryParams = [];
 
