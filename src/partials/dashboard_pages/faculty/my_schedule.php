@@ -216,11 +216,12 @@ foreach ($data as $row) {
             </div>
         </form>
 
+
         <!-- Table view (wrap with a div for toggling) -->
         <div id="tableView">
             <!-- Print header (hidden by default, shown only in print) -->
-            <div class="print-header">
-                <h2 style="margin-bottom: 0.5rem; font-weight: bold; font-size: 18pt;">My Schedule Report</h2>
+            <div class="print-header mx-auto">
+                <h2 style="margin-bottom: 0.5rem; font-weight: bold; font-size: 18pt;">My Schedule</h2>
                 <?php
                 $filterTexts = [];
                 if (!empty($dayFilter))
@@ -332,14 +333,45 @@ foreach ($data as $row) {
 
         <!-- Calendar view (hidden by default) -->
         <div id="calendarView" class="hidden">
+            <!-- Print header (hidden by default, shown only in print) -->
+            <div class="print-header mx-auto">
+                <h2 style="margin-bottom: 0.5rem; font-weight: bold; font-size: 18pt;">My Schedule</h2>
+                <?php
+                $filterTexts = [];
+                if (!empty($dayFilter))
+                    $filterTexts[] = 'Day: ' . htmlspecialchars($dayFilter);
+                if (!empty($sectionFilter)) {
+                    foreach ($sections as $section) {
+                        if ($section['SectionID'] == $sectionFilter) {
+                            $filterTexts[] = 'Section: ' . htmlspecialchars($section['SectionName']);
+                            break;
+                        }
+                    }
+                }
+                if (!empty($search))
+                    $filterTexts[] = 'Search: ' . htmlspecialchars($search);
+                ?>
+                <?php if (!empty($filterTexts)): ?>
+                    <div style="font-size: 12pt;">
+                        <?php echo implode(' | ', $filterTexts); ?>
+                    </div>
+                <?php else: ?>
+                    <div style="font-size: 12pt;">All Schedules</div>
+                <?php endif; ?>
+            </div>
             <!-- Desktop/tablet calendar table -->
             <div class="hidden sm:block overflow-x-auto">
                 <table class="min-w-full border border-gray-200 divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th class="px-2 py-2 text-xs font-medium text-gray-500 uppercase">Time</th>
+                            <th
+                                class="px-2 py-2 text-xs font-medium text-gray-500 uppercase w-28 min-w-24 border-r border-gray-300 text-center">
+                                Time</th>
                             <?php foreach ($days as $day): ?>
-                                <th class="px-2 py-2 text-xs font-medium text-gray-500 uppercase"><?php echo $day; ?></th>
+                                <th
+                                    class="px-2 py-2 text-xs font-medium text-gray-500 uppercase w-40 min-w-32 border-r border-gray-300 text-center">
+                                    <?php echo $day; ?>
+                                </th>
                             <?php endforeach; ?>
                         </tr>
                     </thead>
@@ -368,19 +400,22 @@ foreach ($data as $row) {
                             list($start, $end) = explode(' - ', $slot);
                             $start12 = date('g:i A', strtotime($start));
                             $end12 = date('g:i A', strtotime($end));
-                            $slot12 = $start12 . ' - $end12';
+                            $slot12 = $start12 . ' - ' . $end12;
                             ?>
                             <tr>
-                                <td class="px-2 py-2 font-semibold text-gray-700"><?php echo $slot12; ?></td>
+                                <td
+                                    class="px-2 py-2 font-semibold text-gray-700 w-28 min-w-24 border-r border-gray-300 text-center">
+                                    <?php echo $slot12; ?>
+                                </td>
                                 <?php foreach ($days as $day): ?>
-                                    <td class="px-2 py-2 align-top">
+                                    <td class="px-2 py-2 align-top w-40 min-w-32 border-r border-gray-300">
                                         <?php
                                         if (!empty($calendarData[$slot][$day])) {
                                             foreach ($calendarData[$slot][$day] as $sched) {
                                                 $color = $subjectColors[$sched['SubjectName']];
-                                                echo '<div class="mb-2 p-2 rounded" style="background:' . $color . ';color:#fff;">';
+                                                echo '<div id="cal-item" class="mb-2 p-2 rounded" style="background:' . $color . ';color:#fff;">';
                                                 echo '<div class="font-semibold">' . htmlspecialchars($sched['SubjectName']) . '</div>';
-                                                echo '<div class="text-xs">' . htmlspecialchars($sched['SectionName']) . ' | ' . htmlspecialchars($sched['RoomName']) . '</div>';
+                                                echo '<div class="text-xs">' . htmlspecialchars($sched['SectionName']) . ' | ' . htmlspecialchars('R' . $sched['RoomName']) . '</div>';
                                                 echo '</div>';
                                             }
                                         }
@@ -419,10 +454,11 @@ foreach ($data as $row) {
                                     foreach ($calendarData[$slot][$day] as $sched):
                                         $color = $subjectColors[$sched['SubjectName']];
                                         ?>
-                                        <div class="mb-2 p-3 rounded shadow" style="background:<?php echo $color; ?>;color:#fff;">
+                                        <div id="cal-item" class="mb-2 p-3 rounded shadow"
+                                            style="background:<?php echo $color; ?>;color:#fff;">
                                             <div class="font-semibold"><?php echo htmlspecialchars($sched['SubjectName']); ?></div>
                                             <div class="text-xs"><?php echo htmlspecialchars($sched['SectionName']); ?> |
-                                                <?php echo htmlspecialchars($sched['RoomName']); ?>
+                                                <?php echo htmlspecialchars('R' . $sched['RoomName']); ?>
                                             </div>
                                             <div class="text-xs mt-1"><span class="font-bold">Time:</span> <?php echo $slot12; ?></div>
                                         </div>
@@ -443,7 +479,8 @@ foreach ($data as $row) {
         </div>
 
         <!-- Pagination -->
-        <div id="paginationTool" class="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-4 space-y-2 sm:space-y-0 w-full">
+        <div id="paginationTool"
+            class="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-4 space-y-2 sm:space-y-0 w-full">
             <div class="text-sm text-gray-700">
                 Showing <?php echo ($offset + 1); ?> to <?php echo min($offset + $rowsPerPage, $totalRows); ?> of
                 <?php echo $totalRows; ?> results
@@ -471,14 +508,14 @@ foreach ($data as $row) {
 
 <style>
     @media print {
-
-        /* Hide everything except the table and print header */
         body * {
             visibility: hidden !important;
         }
 
         #tableView,
-        #tableView * {
+        #tableView *,
+        #calendarView,
+        #calendarView * {
             visibility: visible !important;
         }
 
@@ -488,9 +525,11 @@ foreach ($data as $row) {
             margin-bottom: 1rem;
             font-family: Arial, sans-serif;
             text-align: center;
+            color: #000;
         }
 
-        #tableView {
+        #tableView,
+        #calendarView {
             position: relative !important;
             left: 0 !important;
             top: 0 !important;
@@ -502,8 +541,7 @@ foreach ($data as $row) {
             padding: 0 !important;
         }
 
-        /* Hide card view, calendar view, filter form, toggle/print buttons, pagination */
-        #calendarView,
+        /* Hide card view, filter form, toggle/print buttons, pagination */
         #filterForm,
         #toggleViewBtn,
         #printBtn,
@@ -516,7 +554,6 @@ foreach ($data as $row) {
             display: none !important;
         }
 
-        /* Table adjustments for print */
         table {
             width: 100% !important;
             border-collapse: collapse !important;
@@ -538,15 +575,38 @@ foreach ($data as $row) {
             text-align: center !important;
         }
 
-        /* Remove hover and focus styles */
         tr:hover,
         tr:focus {
             background: none !important;
+        }
+
+        #cal-item {
+            color: #000 !important;
+            text-align: center !important;
         }
     }
 
     .print-header {
         display: none;
+    }
+
+    @media screen {
+
+        /* Optional: Make sure table layout is fixed for consistent column widths */
+        #calendarView table {
+            table-layout: fixed;
+        }
+
+        #calendarView th,
+        #calendarView td {
+            border-right: 1px solid #d1d5db;
+            /* Tailwind gray-300 */
+        }
+
+        #calendarView th:last-child,
+        #calendarView td:last-child {
+            border-right: none;
+        }
     }
 </style>
 
