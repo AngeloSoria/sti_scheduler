@@ -234,10 +234,10 @@ ORDER BY sec.SectionName ASC, FIELD(s.Day, 'Monday', 'Tuesday', 'Wednesday', 'Th
 </style>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('DOMContentLoaded', function() {
         const printBtn = document.getElementById('printBtn');
         if (printBtn) {
-            printBtn.addEventListener('click', function () {
+            printBtn.addEventListener('click', function() {
                 window.print();
             });
         }
@@ -245,10 +245,10 @@ ORDER BY sec.SectionName ASC, FIELD(s.Day, 'Monday', 'Tuesday', 'Wednesday', 'Th
 </script>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('DOMContentLoaded', function() {
         const exportCSVBtn = document.getElementById('exportCSVBtn');
         if (exportCSVBtn) {
-            exportCSVBtn.addEventListener('click', function () {
+            exportCSVBtn.addEventListener('click', function() {
                 const table = document.querySelector('table.min-w-full');
                 if (!table) return;
 
@@ -275,7 +275,9 @@ ORDER BY sec.SectionName ASC, FIELD(s.Day, 'Monday', 'Tuesday', 'Wednesday', 'Th
                 });
 
                 // Create a Blob with CSV data and trigger download
-                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const blob = new Blob([csvContent], {
+                    type: 'text/csv;charset=utf-8;'
+                });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
@@ -320,11 +322,8 @@ ORDER BY sec.SectionName ASC, FIELD(s.Day, 'Monday', 'Tuesday', 'Wednesday', 'Th
             </button>
             <button type="button" id="printBtn"
                 class="flex items-center justify-center px-3 sm:px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 w-full sm:w-auto">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" fill="none"
-                    viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                    stroke-linejoin="round">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M6 9V2h12v7M6 18h12v4H6v-4zm0-3h12v1H6v-1z" />
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z" />
                 </svg>
                 Print
             </button>
@@ -352,7 +351,7 @@ ORDER BY sec.SectionName ASC, FIELD(s.Day, 'Monday', 'Tuesday', 'Wednesday', 'Th
                     <option value="">All</option>
                     <?php foreach ($faculties as $faculty): ?>
                         <option value="<?php echo htmlspecialchars($faculty['FacultyID']); ?>" <?php if ($faculty['FacultyID'] == $facultyFilter)
-                               echo 'selected'; ?>>
+                                                                                                    echo 'selected'; ?>>
                             <?php echo htmlspecialchars($faculty['FirstName'] . ' ' . $faculty['LastName']); ?>
                         </option>
                     <?php endforeach; ?>
@@ -365,9 +364,9 @@ ORDER BY sec.SectionName ASC, FIELD(s.Day, 'Monday', 'Tuesday', 'Wednesday', 'Th
                     <?php
                     $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
                     foreach ($days as $dayOption):
-                        ?>
+                    ?>
                         <option value="<?php echo $dayOption; ?>" <?php if ($dayOption == $dayFilter)
-                               echo 'selected'; ?>>
+                                                                        echo 'selected'; ?>>
                             <?php echo $dayOption; ?>
                         </option>
                     <?php endforeach; ?>
@@ -379,7 +378,7 @@ ORDER BY sec.SectionName ASC, FIELD(s.Day, 'Monday', 'Tuesday', 'Wednesday', 'Th
                     <option value="">All</option>
                     <?php foreach ($sections as $section): ?>
                         <option value="<?php echo htmlspecialchars($section['SectionID']); ?>" <?php if ($section['SectionID'] == $sectionFilter)
-                               echo 'selected'; ?>>
+                                                                                                    echo 'selected'; ?>>
                             <?php echo htmlspecialchars($section['SectionName']); ?>
                         </option>
                     <?php endforeach; ?>
@@ -446,7 +445,7 @@ ORDER BY sec.SectionName ASC, FIELD(s.Day, 'Monday', 'Tuesday', 'Wednesday', 'Th
                                         title="Edit" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                                         stroke-linejoin="round">
                                         <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                                            d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V9.456c0-1.081.768-2.015 1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z" />
                                     </svg>
                                 </button>
                                 <button class="text-red-600 hover:text-red-900 delete-btn" title="Delete"
@@ -489,7 +488,7 @@ ORDER BY sec.SectionName ASC, FIELD(s.Day, 'Monday', 'Tuesday', 'Wednesday', 'Th
                     onchange="document.getElementById('rowsPerPageForm').submit();">
                     <?php foreach ($rowsPerPageOptions as $option): ?>
                         <option value="<?php echo $option; ?>" <?php if ($option == $rowsPerPage)
-                               echo 'selected'; ?>>
+                                                                    echo 'selected'; ?>>
                             <?php echo $option; ?>
                         </option>
                     <?php endforeach; ?>
@@ -523,7 +522,7 @@ ORDER BY sec.SectionName ASC, FIELD(s.Day, 'Monday', 'Tuesday', 'Wednesday', 'Th
 <?php include __DIR__ . '/../../modals/admin/edit_schedule_modal.php'; ?>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('DOMContentLoaded', function() {
         const addModal = document.getElementById('addNewScheduleModal');
         const addNewBtn = document.getElementById('addNewBtn');
         const addCloseButtons = addModal ? addModal.querySelectorAll('[data-modal-hide]') : [];
@@ -533,18 +532,17 @@ ORDER BY sec.SectionName ASC, FIELD(s.Day, 'Monday', 'Tuesday', 'Wednesday', 'Th
 
         function openModal(modal) {
             if (modal) {
-                console.log('Opening modal:', modal.id);
                 modal.classList.remove('opacity-0', 'pointer-events-none');
                 modal.classList.add('opacity-100', 'pointer-events-auto');
                 modal.setAttribute('aria-hidden', 'false');
-                // Set focus to the modal for accessibility
-                modal.focus();
+                // Set focus to the first focusable element inside the modal
+                const focusable = modal.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+                if (focusable) focusable.focus();
             }
         }
 
         function closeModal(modal) {
             if (modal) {
-                console.log('Closing modal:', modal.id);
                 modal.classList.remove('opacity-100', 'pointer-events-auto');
                 modal.classList.add('opacity-0', 'pointer-events-none');
                 modal.setAttribute('aria-hidden', 'true');
@@ -557,25 +555,25 @@ ORDER BY sec.SectionName ASC, FIELD(s.Day, 'Monday', 'Tuesday', 'Wednesday', 'Th
         }
 
         if (addNewBtn) {
-            addNewBtn.addEventListener('click', function () {
+            addNewBtn.addEventListener('click', function() {
                 openModal(addModal);
             });
         }
 
         addCloseButtons.forEach(button => {
-            button.addEventListener('click', function () {
+            button.addEventListener('click', function() {
                 closeModal(addModal);
             });
         });
 
         editCloseButtons.forEach(button => {
-            button.addEventListener('click', function () {
+            button.addEventListener('click', function() {
                 closeModal(editModal);
             });
         });
 
         if (addModal) {
-            addModal.addEventListener('click', function (event) {
+            addModal.addEventListener('click', function(event) {
                 if (event.target === addModal) {
                     closeModal(addModal);
                 }
@@ -583,7 +581,7 @@ ORDER BY sec.SectionName ASC, FIELD(s.Day, 'Monday', 'Tuesday', 'Wednesday', 'Th
         }
 
         if (editModal) {
-            editModal.addEventListener('click', function (event) {
+            editModal.addEventListener('click', function(event) {
                 if (event.target === editModal) {
                     closeModal(editModal);
                 }
@@ -592,7 +590,7 @@ ORDER BY sec.SectionName ASC, FIELD(s.Day, 'Monday', 'Tuesday', 'Wednesday', 'Th
 
         // Edit button click handler
         document.querySelectorAll('.edit-btn').forEach(button => {
-            button.addEventListener('click', function () {
+            button.addEventListener('click', function() {
                 const scheduleID = this.getAttribute('data-schedule');
                 const row = this.closest('tr');
                 const subjectName = row.querySelector('td:nth-child(2)').textContent.trim();
@@ -634,19 +632,19 @@ ORDER BY sec.SectionName ASC, FIELD(s.Day, 'Monday', 'Tuesday', 'Wednesday', 'Th
 
         // Delete button click handler
         document.querySelectorAll('.delete-btn').forEach(button => {
-            button.addEventListener('click', function () {
+            button.addEventListener('click', function() {
                 const scheduleID = this.getAttribute('data-schedule');
                 if (confirm('Are you sure you want to delete this schedule?')) {
                     fetch('src/partials/dashboard_pages/admin/functions/func_schedules.php', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded',
-                        },
-                        body: new URLSearchParams({
-                            'context': 'deleteSchedule',
-                            'deleteScheduleID': scheduleID
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                            },
+                            body: new URLSearchParams({
+                                'context': 'deleteSchedule',
+                                'deleteScheduleID': scheduleID
+                            })
                         })
-                    })
                         .then(response => response.text())
                         .then(data => {
                             document.getElementById('messageContainer').innerHTML = data;

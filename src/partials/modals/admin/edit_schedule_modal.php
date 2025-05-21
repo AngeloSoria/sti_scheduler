@@ -1,4 +1,4 @@
-<div id="editScheduleModal" tabindex="-1" aria-hidden="true" data-modal-target="editScheduleModal"
+<div id="editScheduleModal" tabindex="-1" aria-hidden="true"
     class="opacity-0 pointer-events-none overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full transition-opacity duration-300 ease-in-out">
     <!-- Backdrop -->
     <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity duration-300 ease-in-out"></div>
@@ -84,21 +84,23 @@
                             <?php endforeach; ?>
                         </select>
                     </div>
-                    <div class="mb-4">
-                        <label for="editStartTime" class="block text-gray-700 text-sm font-bold mb-2">
-                            Start Time:
-                            <span class="text-red-500">*</span>
-                        </label>
-                        <input type="time" name="editStartTime" id="editStartTime" required
-                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" />
-                    </div>
-                    <div class="mb-6">
-                        <label for="editEndTime" class="block text-gray-700 text-sm font-bold mb-2">
-                            End Time:
-                            <span class="text-red-500">*</span>
-                        </label>
-                        <input type="time" name="editEndTime" id="editEndTime" required
-                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" />
+                    <div class="mb-4 flex flex-col md:flex-row md:space-x-4">
+                        <div class="w-full md:w-1/2">
+                            <label for="editStartTime" class="block text-gray-700 text-sm font-bold mb-2">
+                                Start Time:
+                                <span class="text-red-500">*</span>
+                            </label>
+                            <input type="time" name="editStartTime" id="editStartTime" required
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" />
+                        </div>
+                        <div class="w-full md:w-1/2 mt-4 md:mt-0">
+                            <label for="editEndTime" class="block text-gray-700 text-sm font-bold mb-2">
+                                End Time:
+                                <span class="text-red-500">*</span>
+                            </label>
+                            <input type="time" name="editEndTime" id="editEndTime" required
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" />
+                        </div>
                     </div>
                     <div class="flex justify-end">
                         <button type="button"
