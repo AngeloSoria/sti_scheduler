@@ -49,7 +49,7 @@
                             <?php
                             $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
                             foreach ($days as $day):
-                                ?>
+                            ?>
                                 <option value="<?php echo $day; ?>"><?php echo $day; ?></option>
                             <?php endforeach; ?>
                         </select>
